@@ -1,0 +1,1 @@
+gamu_logger @ https://github.com/GamuNetwork/logger/releases/download/2.0.0-alpha.3/gamu_logger-2.0.0a3-py3-none-any.whl

@@ -1,0 +1,10 @@
+*.code-workspace
+*.log
+*.report.json
+.vscode
+*.save
+*.pyc
+__pycache__/
+
+*env/
+dist/

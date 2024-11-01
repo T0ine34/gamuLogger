@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gamuLogger"
+version = "{version}"
+authors = [
+  { name="Antoine Buirey", email="antoine.buirey@gmail.com" }
+]
+description = "A logger for python"
+readme = "readme.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[tool.pytest.ini_options]
+python_files = "tests/*_test.py"
+pythonpath = "src"
+testpaths = "tests"
