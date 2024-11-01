@@ -1,4 +1,4 @@
-# <div align="center">Gamu Logger - Python Version</div>
+# <div align="center">GamuLogger</div>
 
 
 ## <div align="center">📚 Table of Contents</div>
@@ -14,15 +14,11 @@
 ## <div align="center">🔨 Installation</div>
 The package is available in the assets of the latest release on [pypi](https://pypi.org/project/gamuLogger).
 
-You can install it with pip(**recommended**):
+You can install it with pip:
 ```bash
 pip install gamuLogger
 ```
-Or from github:
-```bash
-pip install https://github.com/GamuNetwork/logger/releases/download/2.0.0/gamu_logger-2.0.0-py3-none-any.whl
-```
-> note: replace `2.0.0` with the version number you want to install.
+
 
 
 
@@ -41,7 +37,7 @@ pip install https://github.com/GamuNetwork/logger/releases/download/2.0.0/gamu_l
     error('This is an error message')
     ```
 
-> You may note that the logging function are also available as static methods in the `Logger` class. This allow you to have them encapsulated in a class and use them in a more object > oriented way:
+> You may note that the logging function are also available as static methods in the `Logger` class. This allow you to have them encapsulated in a class and use them in a more object oriented way:
 > ```python
 > from gamuLogger import Logger
 >
@@ -81,28 +77,10 @@ Logger.addTarget("data.log", LEVELS.DEBUG, SENSITIVE_LEVELS.HIDE) # add a new ta
 > Note that the module name is set only for the current file. If you want to set the module name for all files, you need to set it in each file.
 
 
-### 2. Configuration with `argparse`
-This module is compatible with `argparse`, and contains confugurations methods for the argument parser:
-```python
-from gamuLogger import Logger
-import argparse
-
-parser = argparse.ArgumentParser()
-Logger.configArgParse(parser) # this will add options to the parser, encapsulated in a group named 'Logger configuration'
-args = parser.parse_args()
-Logger.parseArgs(args) # this will apply the configuration from the arguments to the logger
-```
-
-### 3. Configuration from a file
-#### 3.1. JSON Configuration
-
-#### 3.2. XML Configuration
-
-
 ## <div align="center">📁 Examples</div>
 you can find examples in the [example](./example) directory.
-- [example 1](./example/example1) -
-- [example 2](./example/example2) -
+- [example 1](./example/example1) - Basic example
+- [example 2](./example/example2) - Using Threads and Processes
 
 
 
