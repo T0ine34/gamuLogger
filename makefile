@@ -1,4 +1,4 @@
-VERSION = 2.1.0
+VERSION = 3.0.1
 
 
 .PHONY: all
@@ -19,7 +19,7 @@ install_build_deps: ensure_env_exists
 	env/bin/pip install -r requirements-dev.txt
 
 build: ensure_env_exists install_build_deps
-	env/bin/feanor --debug -pv $(VERSION)
+	env/bin/feanor --debug -pv $(VERSION) --no-tests
 
 install: ensure_testenv_exists
 	testenv/bin/pip install dist/*.whl --force-reinstall

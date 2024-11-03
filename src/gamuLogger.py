@@ -209,7 +209,7 @@ class Logger:
         callerInfo = getCallerInfo()
         if not name:
             Module.delete(*callerInfo)
-        elif len(name) > 15:
+        elif any(len(token) > 15 for token in name.split(".")):
             raise ValueError("Module name should be less than 15 characters")
         else:
             Module.new(name, *callerInfo)
@@ -316,16 +316,16 @@ def deepDebugFunc(useChrono : bool = False):
     def pre_wrapper(func : Callable):
         @strictTypeCheck
         def wrapper(*args, **kwargs):
-            deepDebug(f"Calling {func.__name__} with\nargs: {args}\nkwargs: {kwargs}")
+            Logger.deepDebug(f"Calling {func.__name__} with\nargs: {args}\nkwargs: {kwargs}", getCallerInfo())
             if useChrono:
                 start = datetime.now()
             result = func(*args, **kwargs)
             if useChrono:
                 end = datetime.now()
                 tDelta = str(end-start).split(".")[0]
-                deepDebug(f"Function {func.__name__} took {tDelta} to execute and returned \"{result}\"")
+                Logger.deepDebug(f"Function {func.__name__} took {tDelta} to execute and returned \"{result}\"", getCallerInfo())
             else:
-                deepDebug(f"Function {func.__name__} returned \"{result}\"")
+                Logger.deepDebug(f"Function {func.__name__} returned \"{result}\"", getCallerInfo())
             return result
         return wrapper
     return pre_wrapper
@@ -354,19 +354,19 @@ def debugFunc(useChrono : bool = False):
     def pre_wrapper(func : Callable):
         @strictTypeCheck
         def wrapper(*args, **kwargs):
-            debug(f"Calling {func.__name__} with\nargs: {args}\nkwargs: {kwargs}")
+            Logger.debug(f"Calling {func.__name__} with\nargs: {args}\nkwargs: {kwargs}", getCallerInfo())
             if useChrono:
                 start = datetime.now()
             try:
                 result = func(*args, **kwargs)
             except Exception as e:
-                error(f"An error occurred in function {func.__name__}: {e.__class__.__name__} - {e}")
+                Logger.error(f"An error occurred in function {func.__name__}: {e.__class__.__name__} - {e}", getCallerInfo())
                 raise e
             if useChrono:
                 end = datetime.now()
-                debug(f"Function {func.__name__} took {end-start} to execute and returned \"{result}\"")
+                Logger.debug(f"Function {func.__name__} took {end-start} to execute and returned \"{result}\"", getCallerInfo())
             else:
-                debug(f"Function {func.__name__} returned \"{result}\"")
+                Logger.debug(f"Function {func.__name__} returned \"{result}\"", getCallerInfo())
             return result
         return wrapper
     return pre_wrapper

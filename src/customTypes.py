@@ -26,14 +26,29 @@ class Module:
 
     @staticmethod
     def get(filename : str, function : str) -> 'Module':
-        if Module.exist(filename, function):
-            return Module.__instances[(filename, function)]
-        else:
-            raise ValueError(f"No module found for file {filename} and function {function}")
+        # if Module.exist(filename, function):
+        #     return Module.__instances[(filename, function)]
+        # else:
+        #     raise ValueError(f"No module found for file {filename} and function {function}")
+        functions = function.split('.')
+        for i in range(len(functions), 0, -1): # if the function is a.b.c.d, we check if a.b.c.d, a.b.c, a.b, a are in the instances
+            if (filename, '.'.join(functions[:i])) in Module.__instances:
+                return Module.__instances[(filename, '.'.join(functions[:i]))]
+        if (filename, '<module>') in Module.__instances:
+            return Module.__instances[(filename, '<module>')]
+        raise ValueError(f"No module found for file {filename} and function {function}")
 
     @staticmethod
     def exist(filename : str, function : str) -> bool:
-        return (filename, function) in Module.__instances
+        # return (filename, function) in Module.__instances
+        functions = function.split('.')
+        for i in range(len(functions), 0, -1): # if the function is a.b.c.d, we check if a.b.c.d, a.b.c, a.b, a are in the instances
+            if (filename, '.'.join(functions[:i])) in Module.__instances:
+                return True
+        if (filename, '<module>') in Module.__instances:
+            return True
+        return False
+
 
     @staticmethod
     def delete(filename : str, function : str):
@@ -85,6 +100,10 @@ class Module:
             parent = Module.getByName(parentName)
             return Module(moduleName, parent, file, function)
         return Module(name, None, file, function)
+
+    @staticmethod
+    def all() -> dict[tuple[str|None, str|None], 'Module']:
+        return Module.__instances
 
 
 class COLORS(Enum):

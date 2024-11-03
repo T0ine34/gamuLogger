@@ -41,8 +41,8 @@ def getCallerFunctionName(stack = None) -> str:
         return '.'.join(parents) + '.' + caller_name
 
 
-def getCallerInfo():
-    stack = inspect.stack()
+def getCallerInfo(context = 1):
+    stack = inspect.stack(context)
     return getCallerFilePath(stack), getCallerFunctionName(stack)
 
 def getTime():
