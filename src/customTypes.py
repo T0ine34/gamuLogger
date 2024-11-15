@@ -95,9 +95,11 @@ class Module:
         if '.' in name:
             parentName, moduleName = name.rsplit('.', 1)
             if not Module.existByName(parentName):
-                raise ValueError(f"No module found for name {parentName}")
-            #get the parent module
-            parent = Module.getByName(parentName)
+                #create the parent module
+                parent = Module.new(parentName, file, function)
+            else:
+                #get the parent module
+                parent = Module.getByName(parentName)
             return Module(moduleName, parent, file, function)
         return Module(name, None, file, function)
 
