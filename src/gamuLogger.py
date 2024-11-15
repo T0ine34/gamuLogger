@@ -4,7 +4,7 @@ from json import dumps
 from typing import Any, Callable
 
 from .customTypes import (COLORS, LEVELS, SENSITIVE_LEVELS, TERMINAL_TARGETS,
-                          LoggerConfig, Module, Target)
+                            LoggerConfig, Module, Target)
 from .utils import (CustomJSONEncoder, centerString, colorize, getCallerInfo,
                     getExecutableFormatted, getTime, replaceNewLine,
                     splitLongString, strictTypeCheck)
@@ -186,8 +186,8 @@ class Logger:
 #---------------------------------------- Configuration methods -----------------------------------
 
     @staticmethod
-    def getInstance():
-        return Logger.__instance
+    def getInstance() -> 'Logger':
+        return Logger.__instance #type: ignore
 
     @staticmethod
     @strictTypeCheck
