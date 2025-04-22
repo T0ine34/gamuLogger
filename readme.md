@@ -26,7 +26,7 @@ pip install gamuLogger
 
 - First you need to import the package:
     ```python
-    from gamuLogger import deepDebug, debug, info, warning, error, critical, Logger, LEVELS, SENSITIVE_LEVELS
+    from gamuLogger import deepDebug, debug, info, warning, error, critical, Logger, LEVELS
     ```
 > note: you can also only import the members you need instead of importing all of them.
 
@@ -52,26 +52,21 @@ pip install gamuLogger
 ### 1. Basic Configuration
 You can configure the logger using methods of the `Logger` class. Here is an example of how you can do it:
 ```python
-from gamuLogger import Logger, LEVELS, SENSITIVE_LEVELS
+from gamuLogger import Logger, LEVELS
 
 # default target is the standard output, name is 'stdout'
 
-Logger.setLevel("stdout", LEVELS.INFO); # this mean yhat all logs with level less than INFO will be ignored
+Logger.setLevel("stdout", LEVELS.INFO); # this mean yhat all logs with level higher than INFO will be ignored
 
-Logger.setSensitiveLevel("stdout", SENSITIVE_LEVELS.HIDE); # If a log message contains sensitive data, it will be hidden
-
-Logger.addSensitiveData('myPasswordSecret'); # add 'myPasswordSecret' to the list of sensitive data (if a log message contains any of them, it will be hidden according to the sensitive level)
 
 Logger.setModule('my-module'); # set the module name for this file to 'my-module' (this will be displayed in the log message) (by default, no module name is set)
 
-Logger.addTarget("data.log", LEVELS.DEBUG, SENSITIVE_LEVELS.HIDE) # add a new target to the logger (this will log all messages with level less than DEBUG to the file 'data.log' and hide sensitive data if any)
+Logger.addTarget("data.log", LEVELS.DEBUG) # add a new target to the logger (this will log all messages with level higher than than DEBUG to the file 'data.log')
 ```
 
 > Please note that the logger can be used without any manual configuration. The default configuration is:
 > - target: terminal
 >   - level: `INFO`
->   - sensitive mode: `HIDE`
-> - sensitive data: `[]`
 > - module name: `None`
 
 > Note that the module name is set only for the current file. If you want to set the module name for all files, you need to set it in each file.

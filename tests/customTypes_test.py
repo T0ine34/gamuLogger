@@ -3,9 +3,7 @@ import tempfile
 
 import pytest
 
-from gamuLogger.customTypes import (COLORS, LEVELS,
-                                    SENSITIVE_LEVELS, TERMINAL_TARGETS,
-                                    Target)
+from gamuLogger.customTypes import COLORS, LEVELS, TERMINAL_TARGETS, Target
 
 
 class TempFile:
@@ -58,16 +56,6 @@ class Test_LEVELS:
         assert LEVELS.ERROR.color() == COLORS.RED
         assert LEVELS.CRITICAL.color() == COLORS.DARK_RED
 
-
-class Test_SENSITIVE_LEVELS:
-    def test_from_string(self):
-        assert SENSITIVE_LEVELS.from_string('hide') == SENSITIVE_LEVELS.HIDE
-        assert SENSITIVE_LEVELS.from_string('show') == SENSITIVE_LEVELS.SHOW
-        assert SENSITIVE_LEVELS.from_string('invalid') == SENSITIVE_LEVELS.HIDE
-
-    def test_from_bool(self):
-        assert SENSITIVE_LEVELS.from_bool(True) == SENSITIVE_LEVELS.SHOW
-        assert SENSITIVE_LEVELS.from_bool(False) == SENSITIVE_LEVELS.HIDE
 
 class Test_TERMINAL_TARGETS:
     def test_str(self):

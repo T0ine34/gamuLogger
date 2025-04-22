@@ -3,11 +3,11 @@ from datetime import datetime
 from json import dumps
 from typing import Any, Callable
 
-from .customTypes import (COLORS, LEVELS, SENSITIVE_LEVELS, TERMINAL_TARGETS,
+from .customTypes import (COLORS, LEVELS, TERMINAL_TARGETS,
                             LoggerConfig, Module, Target, LoggerException)
 from .utils import (CustomJSONEncoder, centerString, colorize, getCallerInfo,
                     getExecutableFormatted, getTime, replaceNewLine,
-                    splitLongString, strictTypeCheck)
+                    splitLongString)
 
 
 class Logger:
@@ -26,16 +26,15 @@ class Logger:
         #configuring default target
         defaultTargget = Target(TERMINAL_TARGETS.STDOUT)
         defaultTargget["level"] = LEVELS.INFO
-        defaultTargget["sensitiveMode"] = SENSITIVE_LEVELS.HIDE
 
 #---------------------------------------- Internal methods ----------------------------------------
 
-    @strictTypeCheck
+
     def __print(self, level : LEVELS, msg : Any, callerInfo : tuple[str, str]):
         for target in Target.list():
             self.__printInTarget(level, msg, callerInfo, target)
 
-    @strictTypeCheck
+
     def __printInTarget(self, level : LEVELS, msg : Any, callerInfo : tuple[str, str], target : Target):
         if not target["level"] <= level:
             return
@@ -59,7 +58,6 @@ class Logger:
         # add the message
         result += self.__LogElementMessage(msg, callerInfo)
 
-        result = self.__parseSensitive(result, target)
         target(result+"\n")
 
     def __LogElementTime(self, target):
@@ -112,30 +110,18 @@ class Logger:
 
         return f" {replaceNewLine(msg, 33 + (20 if Module.exist(*callerInfo) else 0))}"
 
-    @strictTypeCheck
+
     def __printMessageInTarget(self, msg : str, color : COLORS, target : Target):
-        msg = self.__parseSensitive(msg, target)
         if target.type == Target.Type.TERMINAL:
             target(f"{color}{msg}{COLORS.RESET}")
         else:
             target(msg+"\n")
 
-    @strictTypeCheck
+
     def __printMessage(self, msg : str, color : COLORS):
         for target in Target.list():
             self.__printMessageInTarget(msg, color, target)
 
-    @strictTypeCheck
-    def __parseSensitive(self, msg : str, target : Target) -> str:
-        match target["sensitiveMode"]:
-            case SENSITIVE_LEVELS.HIDE:
-                for sensitive in self.config.sensitiveDatas:
-                    msg = msg.replace(sensitive, "*" * len(sensitive))
-                return msg
-            case SENSITIVE_LEVELS.SHOW:
-                return msg
-            case _:
-                raise ValueError(f"Unknown sensitive mode: {target['sensitiveMode']}")
 
 #---------------------------------------- Logging methods -----------------------------------------
 
@@ -176,7 +162,6 @@ class Logger:
         Logger.getInstance().__print(LEVELS.CRITICAL, msg, callerInfo)
 
     @staticmethod
-    @strictTypeCheck
     def message(msg : Any, color : COLORS = COLORS.NONE):
         Logger.getInstance().__printMessage(msg, color)
 
@@ -184,22 +169,16 @@ class Logger:
 
     @staticmethod
     def getInstance() -> 'Logger':
-        return Logger.__instance #type: ignore
+        if Logger.__instance is None:
+            raise LoggerException("Logger instance does not exist")
+        return Logger.__instance
+
 
     @staticmethod
-    @strictTypeCheck
     def setLevel(targetName: str, level : LEVELS):
         target = Target.get(targetName)
         target["level"] = level
 
-    @staticmethod
-    @strictTypeCheck
-    def setSensitiveMode(targetName: str, mode : SENSITIVE_LEVELS):
-        target = Target.get(targetName)
-        target["sensitiveMode"] = mode
-
-        if mode == SENSITIVE_LEVELS.SHOW:
-            Logger.getInstance().__printMessageInTarget("Sensitive mode was disable, this file may contain sensitive information, please do not share it with anyone", COLORS.YELLOW, target)
 
     @staticmethod
     def setModule(name : str):
@@ -213,19 +192,16 @@ class Logger:
 
 
     @staticmethod
-    @strictTypeCheck
     def showThreadsName(value : bool = True):
         Logger.getInstance().config.showThreadsName = value
 
     @staticmethod
-    @strictTypeCheck
     def showProcessName(value : bool = True):
         Logger.getInstance().config.showProcessName = value
 
 
     @staticmethod
-    @strictTypeCheck
-    def addTarget(targetFunc : Callable[[str], None] | str | Target | TERMINAL_TARGETS, level : LEVELS = LEVELS.INFO, sensitiveMode : SENSITIVE_LEVELS = SENSITIVE_LEVELS.HIDE) -> str:
+    def addTarget(targetFunc : Callable[[str], None] | str | Target | TERMINAL_TARGETS, level : LEVELS = LEVELS.INFO) -> str:
         target = None #type: Target|None
         if isinstance(targetFunc, str):
             target = Target.fromFile(targetFunc)
@@ -234,22 +210,14 @@ class Logger:
         else:
             target = Target(targetFunc)
         Logger.setLevel(target.name, level)
-        Logger.setSensitiveMode(target.name, sensitiveMode)
         return target.name
 
     @staticmethod
-    @strictTypeCheck
     def removeTarget(targetName : str):
         Target.unregister(targetName)
 
-    @staticmethod
-    @strictTypeCheck
-    def addSensitiveData(data : Any):
-        Logger.getInstance().config.sensitiveDatas.append(data)
-
 
     @staticmethod
-    @strictTypeCheck
     def reset():
         Target.clear()
         Logger.getInstance().config.clear()
@@ -260,7 +228,6 @@ class Logger:
         #configuring default target
         defaultTargget = Target(TERMINAL_TARGETS.STDOUT)
         defaultTargget["level"] = LEVELS.INFO
-        defaultTargget["sensitiveMode"] = SENSITIVE_LEVELS.HIDE
 
 def deepDebug(msg : Any):
     Logger.deepDebug(msg, getCallerInfo())
@@ -309,9 +276,9 @@ def deepDebugFunc(useChrono : bool = False):
 
     note: this decorator does nothing if the Logger level is not set to deep debug
     """
-    @strictTypeCheck
+
     def pre_wrapper(func : Callable):
-        @strictTypeCheck
+    
         def wrapper(*args, **kwargs):
             Logger.deepDebug(f"Calling {func.__name__} with\nargs: {args}\nkwargs: {kwargs}", getCallerInfo())
             if useChrono:
@@ -347,9 +314,9 @@ def debugFunc(useChrono : bool = False):
 
     note: this decorator does nothing if the Logger level is not set to debug or deep debug
     """
-    @strictTypeCheck
+
     def pre_wrapper(func : Callable):
-        @strictTypeCheck
+    
         def wrapper(*args, **kwargs):
             Logger.debug(f"Calling {func.__name__} with\nargs: {args}\nkwargs: {kwargs}", getCallerInfo())
             if useChrono:
@@ -385,7 +352,7 @@ def chrono(func : Callable):
     [datetime] [   DEBUG   ] Function my_function took 0.0001s to execute
     ```
     """
-    @strictTypeCheck
+
     def wrapper(*args, **kwargs):
         start = datetime.now()
         result = func(*args, **kwargs)

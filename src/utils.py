@@ -105,26 +105,6 @@ def getFunctionArguments(func) -> dict[str, list[type]]:
 
     return result
 
-def strictTypeCheck(func):
-    def wrapper(*args, **kwargs):
-        # Get the function arguments
-        func_args = getFunctionArguments(func)
-
-        # Check the arguments
-        for i, arg in enumerate(args):
-            types = func_args[list(func_args.keys())[i]]
-            if type(arg) not in types and Any not in types:
-                raise TypeError(f"Argument {i} of function {func.__name__} must be of type ("+", ".join(map(type2string, types)) + ")")
-
-        for key, value in kwargs.items():
-            types = func_args[key]
-            if type(value) not in types and Any not in types:
-                raise TypeError(f"Argument {key} of function {func.__name__} must be of type ("+", ".join(map(type2string, types)) + ")")
-
-        return func(*args, **kwargs)
-
-    return wrapper
-
 def countLinesLength(string : str) -> list[int]:
     lines = string.split('\n')
     return [len(line) for line in lines]

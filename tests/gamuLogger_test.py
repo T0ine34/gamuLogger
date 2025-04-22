@@ -6,7 +6,7 @@ from time import sleep
 
 import pytest
 
-from gamuLogger.gamuLogger import (LEVELS, SENSITIVE_LEVELS,  # type: ignore
+from gamuLogger.gamuLogger import (LEVELS,  # type: ignore
                                    TERMINAL_TARGETS, Logger, Module, Target,
                                    chrono, critical, debug, debugFunc,
                                    deepDebug, deepDebugFunc, error, info,
@@ -222,32 +222,6 @@ class Test_Logger:
         print(result)
         assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  DEBUG   .*\] This is a debug message that should be displayed", result)
 
-    def test_setSensitiveMode(self, capsys):
-        Logger.reset()
-        Module.clear()
-
-        data = "abcdefg"
-
-        Logger.setSensitiveMode("stdout", SENSITIVE_LEVELS.HIDE)
-        Logger.addSensitiveData(data)
-        info("This is a message with a password: " + data)
-
-        captured = capsys.readouterr()
-        result = captured.out
-        print(result)
-
-        assert data not in result
-
-        Logger.setSensitiveMode("stdout", SENSITIVE_LEVELS.SHOW)
-        Logger.addSensitiveData(data)
-
-        info("This is a message with a password: " + data)
-
-        captured = capsys.readouterr()
-        result = captured.out
-        print(result)
-
-        assert data in result
 
     def test_fileTarget(self):
         Logger.reset()

@@ -235,24 +235,6 @@ class LEVELS(Enum):
             case LEVELS.CRITICAL:
                 return COLORS.DARK_RED
 
-class SENSITIVE_LEVELS(Enum):
-    HIDE = 10
-    SHOW = 11
-
-    @staticmethod
-    def from_string(level : str) -> 'SENSITIVE_LEVELS':
-        match level.lower():
-            case 'hide':
-                return SENSITIVE_LEVELS.HIDE
-            case 'show':
-                return SENSITIVE_LEVELS.SHOW
-            case _:
-                return SENSITIVE_LEVELS.HIDE
-
-    @staticmethod
-    def from_bool(value : bool) -> 'SENSITIVE_LEVELS':
-        return SENSITIVE_LEVELS.SHOW if value else SENSITIVE_LEVELS.HIDE
-
 class TERMINAL_TARGETS(Enum):
     STDOUT = 30
     STDERR = 31
@@ -407,26 +389,19 @@ class Target:
         else:
             raise ValueError(f"Target {name} does not exist")
 
-
 class LoggerConfig:
-    def __init__(self, sensitiveDatas: list[str] = None):
-        if sensitiveDatas is None:
-            sensitiveDatas = []
-        self.sensitiveDatas = sensitiveDatas
+    def __init__(self):
         self.showThreadsName = False
         self.showProcessName = False
 
 
     def clear(self):
-        self.sensitiveDatas = []
         self.showThreadsName = False
         self.showProcessName = False
 
 
     def __getitem__(self, key: str) -> Any:
         match key:
-            case 'sensitiveDatas':
-                return self.sensitiveDatas
             case 'showThreadsName':
                 return self.showThreadsName
             case 'showProcessName':
@@ -436,8 +411,6 @@ class LoggerConfig:
 
     def __setitem__(self, key: str, value: Any):
         match key:
-            case 'sensitiveDatas':
-                self.sensitiveDatas = value
             case 'showThreadsName':
                 self.showThreadsName = value
             case 'showProcessName':
@@ -446,7 +419,7 @@ class LoggerConfig:
                 raise KeyError(f"Parameter {key} not found")
 
     def __str__(self):
-        return f"LoggerConfig(sensitiveDatas={self.sensitiveDatas}, showThreadsName={self.showThreadsName}, showProcessName={self.showProcessName})"
+        return f"LoggerConfig(showThreadsName={self.showThreadsName}, showProcessName={self.showProcessName})"
 
 
 class LoggerException(BaseException): ...

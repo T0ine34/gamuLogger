@@ -31,15 +31,15 @@ def test_centerString():
     assert centerString("Hello", -10) == "Hello"
 
 def test_strictTypeCheck():
-    @strictTypeCheck
+
     def test(a : int, b : str):
         pass
 
-    @strictTypeCheck
+
     def test2(a : int, b : str = "Hello"):
         pass
 
-    @strictTypeCheck
+
     def test3(a : int|float):
         pass
 
