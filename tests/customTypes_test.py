@@ -1,12 +1,11 @@
 import os
 import tempfile
-from xml.etree import ElementTree as ET
 
 import pytest
 
-from gamuLogger.customTypes import (COLORS, LEVELS,  # type: ignore
+from gamuLogger.customTypes import (COLORS, LEVELS,
                                     SENSITIVE_LEVELS, TERMINAL_TARGETS,
-                                    LoggerConfig, Target)
+                                    Target)
 
 
 class TempFile:

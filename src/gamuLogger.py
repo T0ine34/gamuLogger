@@ -4,26 +4,23 @@ from json import dumps
 from typing import Any, Callable
 
 from .customTypes import (COLORS, LEVELS, SENSITIVE_LEVELS, TERMINAL_TARGETS,
-                            LoggerConfig, Module, Target)
+                            LoggerConfig, Module, Target, LoggerException)
 from .utils import (CustomJSONEncoder, centerString, colorize, getCallerInfo,
                     getExecutableFormatted, getTime, replaceNewLine,
                     splitLongString, strictTypeCheck)
 
 
-class UnexpectedError(Exception): ...
-
 class Logger:
 
-    __instance = None # type: Logger|None
+    __instance : 'Logger|None' = None
 
     def __new__(cls):
         if cls.__instance is None:
             cls.__instance = super(Logger, cls).__new__(cls)
-            cls.__instance.init()
 
         return cls.__instance
 
-    def init(self):
+    def __init__(self):
         self.config = LoggerConfig()
 
         #configuring default target
@@ -258,7 +255,7 @@ class Logger:
         Logger.getInstance().config.clear()
 
         if not Logger.__instance:
-            raise UnexpectedError("Logger instance does not exist")
+            raise LoggerException("Logger instance does not exist")
 
         #configuring default target
         defaultTargget = Target(TERMINAL_TARGETS.STDOUT)

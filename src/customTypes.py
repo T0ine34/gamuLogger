@@ -447,3 +447,6 @@ class LoggerConfig:
 
     def __str__(self):
         return f"LoggerConfig(sensitiveDatas={self.sensitiveDatas}, showThreadsName={self.showThreadsName}, showProcessName={self.showProcessName})"
+
+
+class LoggerException(BaseException): ...
