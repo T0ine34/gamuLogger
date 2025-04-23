@@ -1,6 +1,6 @@
 import argparse
 
-from gamuLogger import Levels, Logger, critical, debug, debug_func, error, info
+from gamuLogger import Levels, Logger, critical, debug, debug_func, error, info, trace
 
 Logger.set_module("example1")
 
@@ -18,10 +18,15 @@ def main():
     parser.add_argument("a", type=int)
     parser.add_argument("b", type=int)
     parser.add_argument("--debug", action="store_true")
+    parser.add_argument("--trace", action="store_true")
 
     args = parser.parse_args()
     if args.debug:
         Logger.set_level('stdout', Levels.DEBUG)
+    if args.trace:
+        Logger.set_level('stdout', Levels.TRACE)
+
+    trace("starting operation")
 
     a = args.a
     b = args.b
@@ -37,6 +42,8 @@ def main():
     except Exception as e:
         critical(f"Error: {e}")
         exit(1)
+    finally:
+        trace("operation finished")
 
 
 if __name__ == "__main__":
