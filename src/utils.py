@@ -1,3 +1,8 @@
+"""
+Utility functions for the logger module
+"""
+
+
 import inspect
 import os
 import sys
@@ -5,10 +10,10 @@ from datetime import datetime
 from json import JSONEncoder
 from typing import Any
 
-from .customTypes import COLORS
+from .custom_types import COLORS, Callerinfo, Stack
 
 
-def getCallerFilePath(stack = None) -> str:
+def get_caller_file_path(stack : Stack|None = None) -> str:
     """
     Returns the absolute filepath of the caller of the parent function
     """
@@ -19,9 +24,10 @@ def getCallerFilePath(stack = None) -> str:
         return os.path.abspath(stack[-1].filename)
     return os.path.abspath(stack[2].filename)
 
-def getCallerFunctionName(stack = None) -> str:
+def get_caller_function_name(stack  : Stack|None = None) -> str:
     """
-    Returns the name of the function that called this one, including the class name if the function is a method
+    Returns the name of the function that called this one,
+    including the class name if the function is a method
     """
     if stack is None:
         stack = inspect.stack()
@@ -32,7 +38,7 @@ def getCallerFunctionName(stack = None) -> str:
     if caller_name == "<module>":
         return "<module>"
 
-    parents = getAllParents(caller.filename, caller.lineno)[::-1]
+    parents = get_all_parents(caller.filename, caller.lineno)[::-1]
     if len(parents) <= 0:
         return caller_name
     if caller_name == parents[-1]:
@@ -40,78 +46,30 @@ def getCallerFunctionName(stack = None) -> str:
     else:
         return '.'.join(parents) + '.' + caller_name
 
-
-def getCallerInfo(context = 1):
+def get_caller_info(context : int = 1) -> Callerinfo:
+    """
+    Returns the file path and function name of the caller of the parent function
+    """
     stack = inspect.stack(context)
-    return getCallerFilePath(stack), getCallerFunctionName(stack)
+    return get_caller_file_path(stack), get_caller_function_name(stack)
 
-def getTime():
+def get_time():
+    """
+    Returns the current time in the format YYYY-MM-DD HH:MM:SS
+    """
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
-def replaceNewLine(string : str, indent : int = 33):
+def replace_newline(string : str, indent : int = 33):
+    """
+    Replace newlines in a string with a newline and an indent
+    """
     return string.replace('\n', '\n' + (' ' * indent) + '| ')
 
 
-def centerString(string : str, length : int):
-    return string.center(length)
-
-def string2type(string : str):
-    match string.lower().strip():
-        case 'int':
-            return int
-        case 'str':
-            return str
-        case 'float':
-            return float
-        case 'bool':
-            return bool
-        case 'list':
-            return list
-        case 'dict':
-            return dict
-        case 'tuple':
-            return tuple
-        case 'set':
-            return set
-        case 'none':
-            return None
-        case _:
-            return Any
-
-def type2string(t : Any):
-    match t:
-        case None:
-            return 'None'
-        case _:
-            return t.__name__
-
-def getFunctionArguments(func) -> dict[str, list[type]]:
-    signature =  str(inspect.signature(func))
-    signature = signature[1:-1] # Remove parenthesis
-    signature = signature.split(',')
-
-    result = {}
-    for arg in signature:
-        arg = arg.strip()
-        arg = arg.split('=')[0]
-        arg = arg.split(':')
-        arg = [elem.strip() for elem in arg]
-        if len(arg) == 1:
-            result[arg[0]] = [Any]
-            continue
-        types = arg[1]
-        result[arg[0]] = [string2type(t) for t in types.split('|')]
-
-    return result
-
-def countLinesLength(string : str) -> list[int]:
-    lines = string.split('\n')
-    return [len(line) for line in lines]
-
-def splitLongString(string : str, length : int = 100) -> str:
+def split_long_string(string : str, length : int = 100) -> str:
     """Split a long string into multiple lines, on spaces"""
-    result = []
+    result : list[str] = []
     if len(string) <= length:
         return string
 
@@ -130,23 +88,25 @@ def splitLongString(string : str, length : int = 100) -> str:
         result.append(' '.join(current_line))
     return '\n'.join(result)
 
-class CustomJSONEncoder(JSONEncoder):
-    def default(self, o):
+class CustomEncoder(JSONEncoder):
+    """
+    Custom JSON encoder that handles enums and other objects
+    """
+    def default(self, o : Any) -> Any:
         # if we serialize an enum, just return the name
         if hasattr(o, '_name_'):
-            return o._name_
+            return o._name_ #pylint: disable=W0212
 
         if hasattr(o, '__dict__'):
             return o.__dict__
-        elif hasattr(o, '__str__'):
+        if hasattr(o, '__str__'):
             return str(o)
-        else:
-            return super().default(o)
+        return super().default(o)
 
 
 
 
-def getAllParents(filepath, lineno):
+def get_all_parents(filepath : str, lineno : int) -> list[str]:
     """
     Get all parent classes of a class or method, based on indentation in the file
     """
@@ -162,7 +122,7 @@ def getAllParents(filepath, lineno):
     indentation = len(line) - len(line.lstrip())
 
     # Get the parent classes
-    parents = []
+    parents : list[str] = []
     for i in range(lineno-1, 0, -1):
         line = lines[i]
         if len(line) - len(line.lstrip()) < indentation:
@@ -175,9 +135,15 @@ def getAllParents(filepath, lineno):
     return parents
 
 def colorize(color : COLORS, string : str):
+    """
+    Colorize a string with the given color
+    """
     return f"{color}{string}{COLORS.RESET}"
 
 
-def getExecutableFormatted() -> str:
-    executable = sys.executable.split(os.sep)[-1]
+def get_executable_formatted() -> str:
+    """
+    Returns the name of the executable and the script name
+    """
+    executable = sys.executable.rsplit(os.sep, maxsplit=1)[-1]
     return f"{executable} {sys.argv[0]}" if 'python' in executable else executable

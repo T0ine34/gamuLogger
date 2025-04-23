@@ -1,12 +1,35 @@
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+
+# ###############################################################################################
+#                                   PYLINT
+# Disable C0301 = Line too long (80 chars by line is not enough)
+# pylint: disable=line-too-long
+# ###############################################################################################
+
+"""
+Utility class for the logger module
+"""
+
 import sys
 import threading
 from enum import Enum
-from typing import Any, Callable
+from typing import Any, Callable, Protocol
+import inspect
 
 
 class Module:
-    __instances = {}  # type: dict[tuple[str|None, str|None], Module]
-    def __init__(self, name : str, parent : 'Module|None' = None, file : str|None = None, function : str|None = None):
+    """
+    A class that represents a module in the logger system.
+    It is used to keep track of the modules that are being logged.
+    """
+    __instances : dict[tuple[str|None, str|None], 'Module'] = {}
+    def __init__(self,
+                 name : str,
+                 parent : 'Module|None' = None,
+                 file : str|None = None,
+                 function : str|None = None
+                ):
         self.parent = parent
         self.name = name
         self.file = file
@@ -14,24 +37,31 @@ class Module:
 
         Module.__instances[(self.file, self.function)] = self
 
-    def getCompleteName(self) -> str:
+    def get_complete_name(self) -> str:
+        """
+        Get the complete name of the module, including the parent modules.
+        """
         if self.parent is None:
             return self.name
-        return f'{self.parent.getCompleteName()}.{self.name}'
+        return f'{self.parent.get_complete_name()}.{self.name}'
 
-    def getCompletePath(self) -> list[str]:
+    def get_complete_path(self) -> list[str]:
+        """
+        Get the complete path of the module, including the parent modules.
+        """
         if self.parent is None:
             return [self.name]
-        return self.parent.getCompletePath() + [self.name]
+        return self.parent.get_complete_path() + [self.name]
 
     @staticmethod
     def get(filename : str, function : str) -> 'Module':
-        # if Module.exist(filename, function):
-        #     return Module.__instances[(filename, function)]
-        # else:
-        #     raise ValueError(f"No module found for file {filename} and function {function}")
+        """
+        Get the module instance by its filename and function name.
+        If the function is a.b.c.d, we check if a.b.c.d, a.b.c, a.b, a are in the instances
+        """
         functions = function.split('.')
-        for i in range(len(functions), 0, -1): # if the function is a.b.c.d, we check if a.b.c.d, a.b.c, a.b, a are in the instances
+        for i in range(len(functions), 0, -1):
+            # if the function is a.b.c.d, we check if a.b.c.d, a.b.c, a.b, a are in the instances
             if (filename, '.'.join(functions[:i])) in Module.__instances:
                 return Module.__instances[(filename, '.'.join(functions[:i]))]
         if (filename, '<module>') in Module.__instances:
@@ -40,9 +70,13 @@ class Module:
 
     @staticmethod
     def exist(filename : str, function : str) -> bool:
-        # return (filename, function) in Module.__instances
+        """
+        Check if the module instance exists by its filename and function name.
+        If the function is a.b.c.d, we check if a.b.c.d, a.b.c, a.b, a are in the instances
+        """
         functions = function.split('.')
-        for i in range(len(functions), 0, -1): # if the function is a.b.c.d, we check if a.b.c.d, a.b.c, a.b, a are in the instances
+        for i in range(len(functions), 0, -1):
+            # if the function is a.b.c.d, we check if a.b.c.d, a.b.c, a.b, a are in the instances
             if (filename, '.'.join(functions[:i])) in Module.__instances:
                 return True
         if (filename, '<module>') in Module.__instances:
@@ -52,59 +86,82 @@ class Module:
 
     @staticmethod
     def delete(filename : str, function : str):
+        """
+        Delete the module instance by its filename and function name.
+        """
         if Module.exist(filename, function):
             del Module.__instances[(filename, function)]
         else:
             raise ValueError(f"No module found for file {filename} and function {function}")
 
     @staticmethod
-    def getByName(name : str) -> 'Module':
+    def get_by_name(name : str) -> 'Module':
+        """
+        Get the module instance by its name.
+        """
         for module in Module.__instances.values():
-            if module.getCompleteName() == name:
+            if module.get_complete_name() == name:
                 return module
         raise ValueError(f"No module found for name {name}")
 
     @staticmethod
-    def existByName(name : str) -> bool:
+    def exist_by_name(name : str) -> bool:
+        """
+        Check if the module instance exists by its name.
+        """
         return any(
-            module.getCompleteName() == name
+            module.get_complete_name() == name
             for module in Module.__instances.values()
         )
 
     @staticmethod
-    def deleteByName(name : str):
-        if not Module.existByName(name):
+    def delete_by_name(name : str):
+        """
+        Delete the module instance by its name.
+        """
+        if not Module.exist_by_name(name):
             raise ValueError(f"No module found for name {name}")
-        module = Module.getByName(name)
+        module = Module.get_by_name(name)
         del Module.__instances[(module.file, module.function)]
 
 
     @staticmethod
     def clear():
+        """
+        Clear all the module instances.
+        """
         Module.__instances = {}
 
     @staticmethod
     def new(name : str, file : str|None = None, function : str|None = None) -> 'Module':
-        if Module.existByName(name):
-            existing = Module.getByName(name)
+        """
+        Create a new module instance by its name, file and function.
+        If the module already exists, it will return the existing instance.
+        If the module is a.b.c.d, we check if a.b.c.d, a.b.c, a.b, a are in the instances
+        and create the parent modules if they don't exist.
+        """
+        if Module.exist_by_name(name):
+            existing = Module.get_by_name(name)
             if file == existing.file and function == existing.function:
                 return existing
-            else:
-                raise ValueError(f"Module {name} already exists with file {existing.file} and function {existing.function}")
+            raise ValueError(f"Module {name} already exists with file {existing.file} and function {existing.function}")
 
         if '.' in name:
-            parentName, moduleName = name.rsplit('.', 1)
-            if not Module.existByName(parentName):
+            parent_name, module_name = name.rsplit('.', 1)
+            if not Module.exist_by_name(parent_name):
                 #create the parent module
-                parent = Module.new(parentName, file, function)
+                parent = Module.new(parent_name, file, function)
             else:
                 #get the parent module
-                parent = Module.getByName(parentName)
-            return Module(moduleName, parent, file, function)
+                parent = Module.get_by_name(parent_name)
+            return Module(module_name, parent, file, function)
         return Module(name, None, file, function)
 
     @staticmethod
     def all() -> dict[tuple[str|None, str|None], 'Module']:
+        """
+        Get all the module instances.
+        """
         return Module.__instances
 
 
@@ -130,7 +187,7 @@ class COLORS(Enum):
     def __str__(self):
         return self.value
 
-    def __add__(self, other):
+    def __add__(self, other : object):
         """
         Allow to concatenate a string with a color, example:
         ```python
@@ -143,7 +200,7 @@ class COLORS(Enum):
         """
         return f"{self}{other}"
 
-    def __radd__(self, other):
+    def __radd__(self, other : object):
         """
         Allow to concatenate a string with a color, example:
         ```python
@@ -159,10 +216,10 @@ class COLORS(Enum):
     def __repr__(self):
         return self.value
 
-class LEVELS(Enum):
+class Levels(Enum):
     """
-    ## list of levels:
-    - DEEP_DEBUG:   this level is used to print very detailed information, it may contain sensitive information
+    ## list of Levels:
+    - TRACE:   this level is used to print very detailed information, it may contain sensitive information
     - DEBUG:        this level is used to print debug information, it may contain sensitive information
     - INFO:         this level is used to print information about the normal execution of the program
     - WARNING:      this level is used to print warnings about the execution of the program (non-blocking, but may lead to errors)
@@ -170,7 +227,7 @@ class LEVELS(Enum):
     - CRITICAL:     this level is used to print critical errors that lead to the termination of the program, typically used in largest except block
     """
 
-    DEEP_DEBUG = 0  # this level is used to print very detailed information, it may contain sensitive information
+    TRACE = 0       # this level is used to print very detailed information, it may contain sensitive information
     DEBUG = 1       # this level is used to print debug information, it may contain sensitive information
     INFO = 2        # this level is used to print information about the normal execution of the program
     WARNING = 3     # this level is used to print warnings about the execution of the program (non-blocking, but may lead to errors)
@@ -179,87 +236,118 @@ class LEVELS(Enum):
 
 
     @staticmethod
-    def from_string(level : str) -> 'LEVELS':
+    def from_string(level : str) -> 'Levels': #pylint: disable=R0911
+        """
+        Convert a string to a Levels enum.
+        The string can be any case (lower, upper, mixed).
+        """
         match level.lower():
-            case 'deep_debug':
-                return LEVELS.DEEP_DEBUG
+            case 'trace':
+                return Levels.TRACE
             case 'debug':
-                return LEVELS.DEBUG
+                return Levels.DEBUG
             case 'info':
-                return LEVELS.INFO
+                return Levels.INFO
             case 'warning':
-                return LEVELS.WARNING
+                return Levels.WARNING
             case 'error':
-                return LEVELS.ERROR
+                return Levels.ERROR
             case 'critical':
-                return LEVELS.CRITICAL
+                return Levels.CRITICAL
             case _:
-                return LEVELS.INFO
+                return Levels.INFO
 
     def __str__(self) -> str:
         """
-        Return the string representation of the level, serialized to 10 characters (centered with spaces)
+        Return the string representation of the level,
+        serialized to 10 characters (centered with spaces)
         """
         match self:
-            case LEVELS.DEEP_DEBUG:
+            case Levels.TRACE:
+                return '  TRACE   '
+            case Levels.DEBUG:
                 return '  DEBUG   '
-            case LEVELS.DEBUG:
-                return '  DEBUG   '
-            case LEVELS.INFO:
+            case Levels.INFO:
                 return '   INFO   '
-            case LEVELS.WARNING:
+            case Levels.WARNING:
                 return ' WARNING  '
-            case LEVELS.ERROR:
+            case Levels.ERROR:
                 return '  ERROR   '
-            case LEVELS.CRITICAL:
+            case Levels.CRITICAL:
                 return ' CRITICAL '
 
     def __int__(self):
         return self.value
 
-    def __le__(self, other : 'LEVELS'):
+    def __le__(self, other : 'Levels'):
         return self.value <= other.value
 
     def color(self) -> COLORS:
+        """
+        Return the color associated with the level.
+        - TRACE: BLUE
+        - DEBUG: MAGENTA
+        - INFO: GREEN
+        - WARNING: YELLOW
+        - ERROR: RED
+        - CRITICAL: DARK_RED
+        """
         match self:
-            case LEVELS.DEEP_DEBUG:
+            case Levels.TRACE:
                 return COLORS.BLUE
-            case LEVELS.DEBUG:
-                return COLORS.BLUE
-            case LEVELS.INFO:
+            case Levels.DEBUG:
+                return COLORS.MAGENTA
+            case Levels.INFO:
                 return COLORS.GREEN
-            case LEVELS.WARNING:
+            case Levels.WARNING:
                 return COLORS.YELLOW
-            case LEVELS.ERROR:
+            case Levels.ERROR:
                 return COLORS.RED
-            case LEVELS.CRITICAL:
+            case Levels.CRITICAL:
                 return COLORS.DARK_RED
 
-class TERMINAL_TARGETS(Enum):
+class TerminalTarget(Enum):
+    """
+    Enum for the terminal targets.
+    - STDOUT: standard output (sys.stdout)
+    - STDERR: standard error (sys.stderr)
+    """
     STDOUT = 30
     STDERR = 31
 
     def __str__(self) -> str:
         match self:
-            case TERMINAL_TARGETS.STDOUT:
+            case TerminalTarget.STDOUT:
                 return 'stdout'
-            case TERMINAL_TARGETS.STDERR:
+            case TerminalTarget.STDERR:
                 return 'stderr'
 
     @staticmethod
-    def from_string(target : str) -> 'TERMINAL_TARGETS':
+    def from_string(target : str) -> 'TerminalTarget':
+        """
+        Convert a string to a TerminalTarget enum.
+        The string can be any case (lower, upper, mixed).
+        """
         match target.lower():
             case 'stdout':
-                return TERMINAL_TARGETS.STDOUT
+                return TerminalTarget.STDOUT
             case 'stderr':
-                return TERMINAL_TARGETS.STDERR
+                return TerminalTarget.STDERR
             case _:
                 raise ValueError(f"Invalid terminal target: {target}")
 
 class Target:
-    __instances = {} #type: dict[str, Target]
+    """
+    A class that represents a target for the logger.
+    """
+    __instances : dict[str, 'Target'] = {}
 
     class Type(Enum):
+        """
+        Enum for the target types.
+        - FILE: file target (a function that takes a string as input and writes it to a file)
+        - TERMINAL: terminal target (sys.stdout or sys.stderr)
+        """
         FILE = 20
         TERMINAL = 21
 
@@ -270,30 +358,30 @@ class Target:
                 case Target.Type.TERMINAL:
                     return 'terminal'
 
-    def __new__(cls, target : Callable[[str], None] | TERMINAL_TARGETS, name : str|None = None):
+    def __new__(cls, target : Callable[[str], None] | TerminalTarget, name : str|None = None):
         if name is None:
-            if isinstance(target, TERMINAL_TARGETS):
+            if isinstance(target, TerminalTarget):
                 name = name if name is not None else str(target)
             elif hasattr(target, '__name__'):
                 name = target.__name__
             else:
-                raise ValueError("The target must be a function or a TERMINAL_TARGETS; use Target.fromFile(file) to create a file target")
+                raise ValueError("The target must be a function or a TerminalTarget; use Target.from_file(file) to create a file target")
         if target in cls.__instances:
             return cls.__instances[name]
         instance = super().__new__(cls)
         cls.__instances[name] = instance
         return instance
 
-    def __init__(self, target : Callable[[str], None] | TERMINAL_TARGETS, name : str|None = None):
+    def __init__(self, target : Callable[[str], None] | TerminalTarget, name : str|None = None):
 
         if isinstance(target, str):
-            raise ValueError("The target must be a function or a TERMINAL_TARGETS; use Target.fromFile(file) to create a file target")
+            raise ValueError("The target must be a function or a TerminalTarget; use Target.from_file(file) to create a file target")
 
-        if isinstance(target, TERMINAL_TARGETS):
+        if isinstance(target, TerminalTarget):
             match target:
-                case TERMINAL_TARGETS.STDOUT:
+                case TerminalTarget.STDOUT:
                     self.target = sys.stdout.write
-                case TERMINAL_TARGETS.STDERR:
+                case TerminalTarget.STDERR:
                     self.target = sys.stderr.write
             self.__type = Target.Type.TERMINAL
             self.__name = name if name is not None else str(target)
@@ -303,17 +391,21 @@ class Target:
             self.target = target
 
 
-        self.properties = {} #type: dict[str, Any]
+        self.properties : dict[str, Any] = {}
         self.__lock = threading.Lock()
 
     @staticmethod
-    def fromFile(file : str) -> 'Target':
-        def writeToFile(string : str):
+    def from_file(file : str) -> 'Target':
+        """
+        Create a Target from a file.
+        The file will be created if it does not exist.
+        """
+        def write_to_file(string : str):
             with open(file, 'a', encoding="utf-8") as f:
                 f.write(string)
         with open(file, 'w', encoding="utf-8") as f: # clear the file
             f.write('')
-        return Target(writeToFile, file)
+        return Target(write_to_file, file)
 
     def __call__(self, string : str):
         with self.__lock: # prevent multiple threads to write at the same time
@@ -339,10 +431,16 @@ class Target:
 
     @property
     def type(self) -> 'Target.Type':
+        """
+        Get the type of the target.
+        """
         return self.__type
 
     @property
     def name(self) -> str:
+        """
+        Get the name of the target.
+        """
         return self.__name
 
     @name.setter
@@ -353,11 +451,18 @@ class Target:
         Target.__instances[name] = self
 
     def delete(self):
+        """
+        Delete the target from the logger system.
+        This will remove the target from the list of targets and free the memory.
+        """
         Target.unregister(self)
 
 
     @staticmethod
-    def get(name : str | TERMINAL_TARGETS) -> 'Target':
+    def get(name : str | TerminalTarget) -> 'Target':
+        """
+        Get the target instance by its name.
+        """
         name = str(name)
         if Target.exist(name):
             return Target.__instances[name]
@@ -365,24 +470,40 @@ class Target:
             raise ValueError(f"Target {name} does not exist")
 
     @staticmethod
-    def exist(name : str | TERMINAL_TARGETS) -> bool:
+    def exist(name : str | TerminalTarget) -> bool:
+        """
+        Check if the target instance exists by its name.
+        """
         name = str(name)
-        return name in Target.__instances.keys()
+        return name in Target.__instances
 
     @staticmethod
     def list() -> list['Target']:
+        """
+        Get the list of all targets.
+        """
         return list(Target.__instances.values())
 
     @staticmethod
     def clear():
+        """
+        Clear all the target instances.
+        """
         Target.__instances = {}
 
     @staticmethod
     def register(target : 'Target'):
+        """
+        Register a target instance in the logger system.
+        """
         Target.__instances[target.name] = target
 
     @staticmethod
-    def unregister(target):
+    def unregister(target : 'Target|str'):
+        """
+        Unregister a target instance from the logger system.
+        Target can be a Target instance or a string (name of the target).
+        """
         name = target if isinstance(target, str) else target.name
         if Target.exist(name):
             del Target.__instances[name]
@@ -390,36 +511,59 @@ class Target:
             raise ValueError(f"Target {name} does not exist")
 
 class LoggerConfig:
+    """
+    A class that represents the configuration of the logger.
+    """
     def __init__(self):
-        self.showThreadsName = False
-        self.showProcessName = False
+        self.show_threads_name = False
+        self.show_process_name = False
 
 
     def clear(self):
-        self.showThreadsName = False
-        self.showProcessName = False
+        """
+        Clear the logger config.
+        """
+        self.show_threads_name = False
+        self.show_process_name = False
 
 
     def __getitem__(self, key: str) -> Any:
         match key:
-            case 'showThreadsName':
-                return self.showThreadsName
-            case 'showProcessName':
-                return self.showProcessName
+            case 'show_threads_name':
+                return self.show_threads_name
+            case 'show_process_name':
+                return self.show_process_name
             case _:
                 raise KeyError(f"Parameter {key} not found")
 
     def __setitem__(self, key: str, value: Any):
         match key:
-            case 'showThreadsName':
-                self.showThreadsName = value
-            case 'showProcessName':
-                self.showProcessName = value
+            case 'show_threads_name':
+                self.show_threads_name = value
+            case 'show_process_name':
+                self.show_process_name = value
             case _:
                 raise KeyError(f"Parameter {key} not found")
 
     def __str__(self):
-        return f"LoggerConfig(showThreadsName={self.showThreadsName}, showProcessName={self.showProcessName})"
+        return f"LoggerConfig(show_threads_name={self.show_threads_name}, show_process_name={self.show_process_name})"
 
 
-class LoggerException(BaseException): ...
+class SupportsStr(Protocol): #pylint: disable=R0903
+    """
+    A protocol that defines a __str__ method.
+    """
+    def __str__(self) -> str: ...
+
+
+type Callerinfo = tuple[str, str]
+
+type Message = str|SupportsStr
+
+type Stack = list[inspect.FrameInfo]
+
+
+class LoggerException(BaseException):
+    """
+    A class that represents an exception in the logger system.
+    """

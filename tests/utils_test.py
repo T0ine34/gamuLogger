@@ -6,29 +6,18 @@ import pytest
 
 FILEPATH = os.path.abspath(__file__)
 
-from gamuLogger.utils import (centerString, getCallerInfo,  # type: ignore
-                              getTime, replaceNewLine, splitLongString,
-                              strictTypeCheck)
+from gamuLogger.utils import get_time, replace_newline, split_long_string
 
 
-def test_getTime():
-    assert re.match(r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}", getTime())
+def test_get_time():
+    assert re.match(r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}", get_time())
 
-def test_replaceNewLine():
-    assert replaceNewLine("Hello\nWorld") == "Hello\n                                 | World"
-    assert replaceNewLine("Hello\nWorld", 10) == "Hello\n          | World"
-    assert replaceNewLine("\n", 2) == "\n  | "
-    assert replaceNewLine("", 2) == ""
-    assert replaceNewLine("Hello", 2) == "Hello"
-
-def test_centerString():
-    assert centerString("Hello", 10) == "  Hello   "
-    assert centerString("Hello", 11) == "   Hello   "
-    assert centerString("Hello", 9) == "  Hello  "
-    assert centerString("Hello", 5) == "Hello"
-    assert centerString("Hello", 3) == "Hello"
-    assert centerString("Hello", 0) == "Hello"
-    assert centerString("Hello", -10) == "Hello"
+def test_replace_newline():
+    assert replace_newline("Hello\nWorld") == "Hello\n                                 | World"
+    assert replace_newline("Hello\nWorld", 10) == "Hello\n          | World"
+    assert replace_newline("\n", 2) == "\n  | "
+    assert replace_newline("", 2) == ""
+    assert replace_newline("Hello", 2) == "Hello"
 
 def test_strictTypeCheck():
 
@@ -66,9 +55,9 @@ def test_strictTypeCheck():
     with pytest.raises(TypeError):
         test3("1")
 
-def test_splitLongString():
-    assert splitLongString("Hello World", 5) == "Hello\nWorld"
-    assert splitLongString("Hello World", 6) == "Hello\nWorld"
-    pytest.raises(ValueError, splitLongString, "Hello World", 2)
-    pytest.raises(ValueError, splitLongString, "HelloWorld", 8)
-    assert splitLongString("Hello World", 11) == "Hello World"
+def test_split_long_string():
+    assert split_long_string("Hello World", 5) == "Hello\nWorld"
+    assert split_long_string("Hello World", 6) == "Hello\nWorld"
+    pytest.raises(ValueError, split_long_string, "Hello World", 2)
+    pytest.raises(ValueError, split_long_string, "HelloWorld", 8)
+    assert split_long_string("Hello World", 11) == "Hello World"

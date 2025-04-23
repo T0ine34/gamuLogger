@@ -1,14 +1,14 @@
 import argparse
 
-from gamuLogger import LEVELS, Logger, critical, debug, debugFunc, error, info
+from gamuLogger import Levels, Logger, critical, debug, debug_func, error, info
 
-Logger.setModule("example1")
+Logger.set_module("example1")
 
-@debugFunc(True) # True or False to enable or disable chrono
+@debug_func(True) # True or False to enable or disable chrono
 def addition(a, b):
     return a + b
 
-@debugFunc(True)
+@debug_func(True)
 def division(a, b):
     return a / b
 
@@ -21,7 +21,7 @@ def main():
 
     args = parser.parse_args()
     if args.debug:
-        Logger.setLevel('stdout', LEVELS.DEBUG)
+        Logger.set_level('stdout', Levels.DEBUG)
 
     a = args.a
     b = args.b

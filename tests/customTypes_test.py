@@ -3,7 +3,7 @@ import tempfile
 
 import pytest
 
-from gamuLogger.customTypes import COLORS, LEVELS, TERMINAL_TARGETS, Target
+from gamuLogger.customTypes import COLORS, Levels, TerminalTarget, Target
 
 
 class TempFile:
@@ -16,56 +16,56 @@ class TempFile:
         os.remove(self.filepath)
 
 
-class Test_LEVELS:
+class Test_Levels:
     def test_values(self):
-        assert int(LEVELS.DEEP_DEBUG) == 0
-        assert int(LEVELS.DEBUG) == 1
-        assert int(LEVELS.INFO) == 2
-        assert int(LEVELS.WARNING) == 3
-        assert int(LEVELS.ERROR) == 4
-        assert int(LEVELS.CRITICAL) == 5
+        assert int(Levels.TRACE) == 0
+        assert int(Levels.DEBUG) == 1
+        assert int(Levels.INFO) == 2
+        assert int(Levels.WARNING) == 3
+        assert int(Levels.ERROR) == 4
+        assert int(Levels.CRITICAL) == 5
 
     def test_superiority(self):
-        assert LEVELS.DEEP_DEBUG <= LEVELS.DEBUG
-        assert LEVELS.DEBUG <= LEVELS.INFO
-        assert LEVELS.INFO <= LEVELS.WARNING
-        assert LEVELS.WARNING <= LEVELS.ERROR
-        assert LEVELS.ERROR <= LEVELS.CRITICAL
+        assert Levels.TRACE <= Levels.DEBUG
+        assert Levels.DEBUG <= Levels.INFO
+        assert Levels.INFO <= Levels.WARNING
+        assert Levels.WARNING <= Levels.ERROR
+        assert Levels.ERROR <= Levels.CRITICAL
 
     def test_from_string(self):
-        assert LEVELS.from_string('debug') == LEVELS.DEBUG
-        assert LEVELS.from_string('info') == LEVELS.INFO
-        assert LEVELS.from_string('warning') == LEVELS.WARNING
-        assert LEVELS.from_string('error') == LEVELS.ERROR
-        assert LEVELS.from_string('critical') == LEVELS.CRITICAL
-        assert LEVELS.from_string('invalid') == LEVELS.INFO
+        assert Levels.from_string('debug') == Levels.DEBUG
+        assert Levels.from_string('info') == Levels.INFO
+        assert Levels.from_string('warning') == Levels.WARNING
+        assert Levels.from_string('error') == Levels.ERROR
+        assert Levels.from_string('critical') == Levels.CRITICAL
+        assert Levels.from_string('invalid') == Levels.INFO
 
     def test_str(self):
-        assert str(LEVELS.DEEP_DEBUG) ==    '  DEBUG   '
-        assert str(LEVELS.DEBUG) ==         '  DEBUG   '
-        assert str(LEVELS.INFO) ==          '   INFO   '
-        assert str(LEVELS.WARNING) ==       ' WARNING  '
-        assert str(LEVELS.ERROR) ==         '  ERROR   '
-        assert str(LEVELS.CRITICAL) ==      ' CRITICAL '
+        assert str(Levels.TRACE) ==    '  DEBUG   '
+        assert str(Levels.DEBUG) ==         '  DEBUG   '
+        assert str(Levels.INFO) ==          '   INFO   '
+        assert str(Levels.WARNING) ==       ' WARNING  '
+        assert str(Levels.ERROR) ==         '  ERROR   '
+        assert str(Levels.CRITICAL) ==      ' CRITICAL '
 
     def test_color(self):
-        assert LEVELS.DEEP_DEBUG.color() == COLORS.BLUE
-        assert LEVELS.DEBUG.color() == COLORS.BLUE
-        assert LEVELS.INFO.color() == COLORS.GREEN
-        assert LEVELS.WARNING.color() == COLORS.YELLOW
-        assert LEVELS.ERROR.color() == COLORS.RED
-        assert LEVELS.CRITICAL.color() == COLORS.DARK_RED
+        assert Levels.TRACE.color() == COLORS.BLUE
+        assert Levels.DEBUG.color() == COLORS.BLUE
+        assert Levels.INFO.color() == COLORS.GREEN
+        assert Levels.WARNING.color() == COLORS.YELLOW
+        assert Levels.ERROR.color() == COLORS.RED
+        assert Levels.CRITICAL.color() == COLORS.DARK_RED
 
 
-class Test_TERMINAL_TARGETS:
+class Test_TerminalTarget:
     def test_str(self):
-        assert str(TERMINAL_TARGETS.STDOUT) == 'stdout'
-        assert str(TERMINAL_TARGETS.STDERR) == 'stderr'
+        assert str(TerminalTarget.STDOUT) == 'stdout'
+        assert str(TerminalTarget.STDERR) == 'stderr'
 
     def test_from_string(self):
-        assert TERMINAL_TARGETS.from_string('stdout') == TERMINAL_TARGETS.STDOUT
-        assert TERMINAL_TARGETS.from_string('stderr') == TERMINAL_TARGETS.STDERR
-        pytest.raises(ValueError, TERMINAL_TARGETS.from_string, 'invalid')
+        assert TerminalTarget.from_string('stdout') == TerminalTarget.STDOUT
+        assert TerminalTarget.from_string('stderr') == TerminalTarget.STDERR
+        pytest.raises(ValueError, TerminalTarget.from_string, 'invalid')
 
 
 class Test_Target:
@@ -82,18 +82,18 @@ class Test_Target:
         assert str(target) == "function"
 
     def test_from_terminal(self):
-        target = Target(TERMINAL_TARGETS.STDOUT)
+        target = Target(TerminalTarget.STDOUT)
         assert target.type == Target.Type.TERMINAL
         assert str(target) == "stdout"
         Target.clear()
-        target = Target(TERMINAL_TARGETS.STDERR)
+        target = Target(TerminalTarget.STDERR)
         assert target.type == Target.Type.TERMINAL
         assert str(target) == "stderr"
         Target.clear()
 
     def test_from_string(self):
         fd, filepath = tempfile.mkstemp()
-        target = Target.fromFile(filepath)
+        target = Target.from_file(filepath)
         assert target.type == Target.Type.FILE
         assert os.path.exists(filepath)
         assert str(target) == filepath

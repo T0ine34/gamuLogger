@@ -6,28 +6,28 @@ from time import sleep
 
 import pytest
 
-from gamuLogger.gamuLogger import (LEVELS,  # type: ignore
-                                   TERMINAL_TARGETS, Logger, Module, Target,
-                                   chrono, critical, debug, debugFunc,
-                                   deepDebug, deepDebugFunc, error, info,
+from gamuLogger.gamuLogger import (Levels,  # type: ignore
+                                   TerminalTarget, Logger, Module, Target,
+                                   chrono, critical, debug, debug_func,
+                                   trace, trace_func, error, info,
                                    message, warning)
 
 
 class Test_Logger:
-    def test_deepDebug(self, capsys):
+    def test_trace(self, capsys):
         Logger.reset()
         Module.clear()
-        Logger.setLevel("stdout", LEVELS.DEEP_DEBUG)
-        deepDebug("This is a deep debug message")
+        Logger.set_level("stdout", Levels.TRACE)
+        trace("This is a trace message")
         captured = capsys.readouterr()
         result = captured.out
         print(result)
-        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  DEBUG   .*\] This is a deep debug message", result)
+        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  DEBUG   .*\] This is a trace message", result)
 
     def test_debug(self, capsys):
         Logger.reset()
         Module.clear()
-        Logger.setLevel("stdout", LEVELS.DEBUG)
+        Logger.set_level("stdout", Levels.DEBUG)
         debug("This is a debug message")
         captured = capsys.readouterr()
         result = captured.out
@@ -37,7 +37,7 @@ class Test_Logger:
     def test_info(self, capsys):
         Logger.reset()
         Module.clear()
-        Logger.setLevel("stdout", LEVELS.INFO)
+        Logger.set_level("stdout", Levels.INFO)
         info("This is an info message")
         captured = capsys.readouterr()
         result = captured.out
@@ -47,7 +47,7 @@ class Test_Logger:
     def test_warning(self, capsys):
         Logger.reset()
         Module.clear()
-        Logger.setLevel("stdout", LEVELS.WARNING)
+        Logger.set_level("stdout", Levels.WARNING)
         warning("This is a warning message")
         captured = capsys.readouterr()
         result = captured.out
@@ -57,7 +57,7 @@ class Test_Logger:
     def test_error(self, capsys):
         Logger.reset()
         Module.clear()
-        Logger.setLevel("stdout", LEVELS.ERROR)
+        Logger.set_level("stdout", Levels.ERROR)
         error("This is an error message")
         captured = capsys.readouterr()
         result = captured.out
@@ -67,7 +67,7 @@ class Test_Logger:
     def test_critical(self, capsys):
         Logger.reset()
         Module.clear()
-        Logger.setLevel("stdout", LEVELS.CRITICAL)
+        Logger.set_level("stdout", Levels.CRITICAL)
         critical("This is a critical message")
         captured = capsys.readouterr()
         result = captured.out
@@ -77,7 +77,7 @@ class Test_Logger:
     def test_message(self, capsys):
         Logger.reset()
         Module.clear()
-        Logger.setLevel("stdout", LEVELS.INFO)
+        Logger.set_level("stdout", Levels.INFO)
         message("This is a message")
         captured = capsys.readouterr()
         result = captured.out
@@ -87,7 +87,7 @@ class Test_Logger:
     def test_multiline(self, capsys):
         Logger.reset()
         Module.clear()
-        Logger.setLevel("stdout", LEVELS.INFO)
+        Logger.set_level("stdout", Levels.INFO)
         info("This is a message\nThis is a message")
         captured = capsys.readouterr()
         result = captured.out
@@ -97,8 +97,8 @@ class Test_Logger:
     def test_module(self, capsys):
         Logger.reset()
         Module.clear()
-        Logger.setLevel("stdout", LEVELS.INFO)
-        Logger.setModule("test")
+        Logger.set_level("stdout", Levels.INFO)
+        Logger.set_module("test")
         info("This is a message")
         captured = capsys.readouterr()
         result = captured.out
@@ -108,10 +108,10 @@ class Test_Logger:
     def test_sub_module(self, capsys):
         Logger.reset()
         Module.clear()
-        Logger.setLevel("stdout", LEVELS.INFO)
-        Logger.setModule("test")
+        Logger.set_level("stdout", Levels.INFO)
+        Logger.set_module("test")
         def subFunc():
-            Logger.setModule("test.sub")
+            Logger.set_module("test.sub")
             info("This is a message")
         subFunc()
         captured = capsys.readouterr()
@@ -122,12 +122,12 @@ class Test_Logger:
     def test_sub_sub_module(self, capsys):
         Logger.reset()
         Module.clear()
-        Logger.setLevel("stdout", LEVELS.INFO)
-        Logger.setModule("test")
+        Logger.set_level("stdout", Levels.INFO)
+        Logger.set_module("test")
         def subFunc():
-            Logger.setModule("test.sub")
+            Logger.set_module("test.sub")
             def subSubFunc():
-                Logger.setModule("test.sub.sub")
+                Logger.set_module("test.sub.sub")
                 info("This is a message")
             subSubFunc()
         subFunc()
@@ -139,8 +139,8 @@ class Test_Logger:
     def test_multiline_module(self, capsys):
         Logger.reset()
         Module.clear()
-        Logger.setLevel("stdout", LEVELS.INFO)
-        Logger.setModule("test")
+        Logger.set_level("stdout", Levels.INFO)
+        Logger.set_module("test")
         info("This is a message\nThis is a message")
         captured = capsys.readouterr()
         result = captured.out
@@ -151,12 +151,12 @@ class Test_Logger:
         Logger.reset()
         Module.clear()
         with pytest.raises(ValueError):
-            Logger.setModule("This module name is too long")
+            Logger.set_module("This module name is too long")
 
     def test_chrono(self, capsys):
         Logger.reset()
         Module.clear()
-        Logger.setLevel("stdout", LEVELS.DEBUG)
+        Logger.set_level("stdout", Levels.DEBUG)
 
         @chrono
         def test():
@@ -168,14 +168,14 @@ class Test_Logger:
         print(result)
         assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  DEBUG   .*\] Function test took 0:00:01.\d{6} to execute", result)
 
-    def test_deepDebugFunc(self, capsys):
+    def test_trace_func(self, capsys):
         Logger.reset()
         Module.clear()
-        Logger.setLevel("stdout", LEVELS.DEEP_DEBUG)
+        Logger.set_level("stdout", Levels.TRACE)
 
-        @deepDebugFunc(True)
+        @trace_func(True)
         def test():
-            return "This is a deep debug function"
+            return "This is a trace function"
 
         test()
         captured = capsys.readouterr()
@@ -185,14 +185,14 @@ class Test_Logger:
         assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  DEBUG   .*\] Calling test with", result[0])
         assert re.match(r"                                 \| args: \(\)", result[1])
         assert re.match(r"                                 \| kwargs: {}", result[2])
-        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  DEBUG   .*\] Function test took 0:00:00 to execute and returned \"This is a deep debug function\"", result[3])
+        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  DEBUG   .*\] Function test took 0:00:00 to execute and returned \"This is a trace function\"", result[3])
 
-    def test_debugFunc(self, capsys):
+    def test_debug_func(self, capsys):
         Logger.reset()
         Module.clear()
-        Logger.setLevel("stdout", LEVELS.DEBUG)
+        Logger.set_level("stdout", Levels.DEBUG)
 
-        @debugFunc(False)
+        @debug_func(False)
         def test():
             return "This is a debug function"
 
@@ -206,14 +206,14 @@ class Test_Logger:
         assert re.match(r"                                 \| kwargs: {}", result[2])
         assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  DEBUG   .*\] Function test returned \"This is a debug function\"", result[3])
 
-    def test_setLevel(self, capsys):
+    def test_set_level(self, capsys):
         Logger.reset()
         Module.clear()
-        Logger.setLevel("stdout", LEVELS.INFO)
+        Logger.set_level("stdout", Levels.INFO)
 
         debug("This is a debug message that should not be displayed")
 
-        Logger.setLevel("stdout", LEVELS.DEBUG)
+        Logger.set_level("stdout", Levels.DEBUG)
 
         debug("This is a debug message that should be displayed")
 
@@ -228,7 +228,7 @@ class Test_Logger:
         Module.clear()
 
         with tempfile.TemporaryDirectory() as tmpdirname:
-            Logger.addTarget(tmpdirname + "/test.log")
+            Logger.add_target(tmpdirname + "/test.log")
 
             info("This is a message")
 
@@ -248,7 +248,7 @@ class Test_Logger:
         def customFunction(message):
             out.append(message)
 
-        Logger.addTarget(customFunction)
+        Logger.add_target(customFunction)
 
         info("This is a message")
 

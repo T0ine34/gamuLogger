@@ -26,7 +26,7 @@ pip install gamuLogger
 
 - First you need to import the package:
     ```python
-    from gamuLogger import deepDebug, debug, info, warning, error, critical, Logger, LEVELS
+    from gamuLogger import trace, debug, info, warning, error, critical, Logger, Levels
     ```
 > note: you can also only import the members you need instead of importing all of them.
 
@@ -52,16 +52,16 @@ pip install gamuLogger
 ### 1. Basic Configuration
 You can configure the logger using methods of the `Logger` class. Here is an example of how you can do it:
 ```python
-from gamuLogger import Logger, LEVELS
+from gamuLogger import Logger, Levels
 
 # default target is the standard output, name is 'stdout'
 
-Logger.setLevel("stdout", LEVELS.INFO); # this mean yhat all logs with level higher than INFO will be ignored
+Logger.set_level("stdout", Levels.INFO); # this mean yhat all logs with level higher than INFO will be ignored
 
 
-Logger.setModule('my-module'); # set the module name for this file to 'my-module' (this will be displayed in the log message) (by default, no module name is set)
+Logger.set_module('my-module'); # set the module name for this file to 'my-module' (this will be displayed in the log message) (by default, no module name is set)
 
-Logger.addTarget("data.log", LEVELS.DEBUG) # add a new target to the logger (this will log all messages with level higher than than DEBUG to the file 'data.log')
+Logger.add_target("data.log", Levels.DEBUG) # add a new target to the logger (this will log all messages with level higher than than DEBUG to the file 'data.log')
 ```
 
 > Please note that the logger can be used without any manual configuration. The default configuration is:
