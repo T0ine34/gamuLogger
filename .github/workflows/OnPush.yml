@@ -29,14 +29,7 @@ jobs:
     - name: Store artifact
       uses: actions/upload-artifact@v4
       with:
-        name: python-package-distributions
         path: dist/*
-
-    - name: Publish release assets
-      uses: AButler/upload-release-assets@v3.0
-      with:
-        files: "dist/*"
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
 
 
   tests:
@@ -52,7 +45,7 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: python-package-distributions
+          name: dist
 
       - name: Install dependencies from the wheel
         run: pip install dist/*.whl
