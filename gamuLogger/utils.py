@@ -19,7 +19,6 @@ def get_caller_file_path(stack : Stack|None = None) -> str:
     """
     if stack is None:
         stack = inspect.stack()
-    # return os.path.abspath(stack[2][1])
     if len(stack) < 3:
         return os.path.abspath(stack[-1].filename)
     return os.path.abspath(stack[2].filename)
@@ -67,32 +66,33 @@ def replace_newline(string : str, indent : int = 33):
     return string.replace('\n', '\n' + (' ' * indent) + '| ')
 
 
-def split_long_string(string : str, length : int = 100) -> str:
-    """Split a long string into multiple lines, on spaces"""
-    result : list[str] = []
+def split_long_string(string: str, length: int = 100) -> str:
+    """Split a long string into multiple lines, on spaces."""
+    result: list[str] = []
     if len(string) <= length:
         return string
 
-    lines = [line.split(' ') for line in string.split('\n')]
-
+    lines = string.split('\n')  # Split by existing newlines first
     for line in lines:
+        words = line.split(' ')  # Split each line into words
         current_line = []
-        for word in line:
+        for word in words:
             if len(word) > length:
                 raise ValueError("A word is longer than the maximum length")
-            if len(' '.join(current_line)) + len(word) > length:
+            if len(' '.join(current_line)) + len(word) + (1 if current_line else 0) > length:
                 result.append(' '.join(current_line))
                 current_line = [word]
             else:
                 current_line.append(word)
-        result.append(' '.join(current_line))
+        if current_line:
+            result.append(' '.join(current_line))
     return '\n'.join(result)
 
 class CustomEncoder(JSONEncoder):
     """
     Custom JSON encoder that handles enums and other objects
     """
-    def default(self, o : Any) -> Any:
+    def default(self, o : Any) -> str:
         # if we serialize an enum, just return the name
         if hasattr(o, '_name_'):
             return o._name_ #pylint: disable=W0212
@@ -102,8 +102,6 @@ class CustomEncoder(JSONEncoder):
         if hasattr(o, '__str__'):
             return str(o)
         return super().default(o)
-
-
 
 
 def get_all_parents(filepath : str, lineno : int) -> list[str]:
@@ -146,4 +144,5 @@ def get_executable_formatted() -> str:
     Returns the name of the executable and the script name
     """
     executable = sys.executable.rsplit(os.sep, maxsplit=1)[-1]
-    return f"{executable} {sys.argv[0]}" if 'python' in executable else executable
+    program_name = sys.argv[0] if len(sys.argv) >= 1 else ""
+    return f"{executable} {program_name}" if 'python' in executable else executable
