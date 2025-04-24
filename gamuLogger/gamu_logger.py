@@ -19,11 +19,13 @@ from datetime import datetime
 from json import dumps
 from typing import Any, Callable, TypeVar
 
-from .custom_types import (COLORS, Levels, TerminalTarget, Callerinfo,
-                            LoggerConfig, Module, Target, LoggerException, Message)
+from .custom_types import (COLORS, Callerinfo, Levels, LoggerConfig,
+                           LoggerException, Message, Module, Target,
+                           TerminalTarget)
 from .utils import (CustomEncoder, colorize, get_caller_info,
                     get_executable_formatted, get_time, replace_newline,
                     split_long_string)
+
 T = TypeVar('T')
 
 class Logger:
@@ -150,7 +152,7 @@ class Logger:
     def debug(msg : Message, caller_info : Callerinfo|None = None):
         """
         Print a debug message to the standard output, in magenta color
-        
+
         Args:
             msg (Message): The message to print
             caller_info (Callerinfo|None): The caller info. If None, the caller info will be retrieved from the stack.
@@ -163,7 +165,7 @@ class Logger:
     def info(msg : Message, caller_info : Callerinfo|None = None):
         """
         Print an info message to the standard output, in green color
-        
+
         Args:
             msg (Message): The message to print
             caller_info (Callerinfo|None): The caller info. If None, the caller info will be retrieved from the stack.
@@ -176,7 +178,7 @@ class Logger:
     def warning(msg : Message, caller_info : Callerinfo|None = None):
         """
         Print a warning message to the standard output, in yellow color
-        
+
         Args:
             msg (Message): The message to print
             caller_info (Callerinfo|None): The caller info. If None, the caller info will be retrieved from the stack.
@@ -189,7 +191,7 @@ class Logger:
     def error(msg : Message, caller_info : Callerinfo|None = None):
         """
         Print an error message to the standard output, in red color
-        
+
         Args:
             msg (Message): The message to print
             caller_info (Callerinfo|None): The caller info. If None, the caller info will be retrieved from the stack.
@@ -202,7 +204,7 @@ class Logger:
     def critical(msg : Message, caller_info : Callerinfo|None = None):
         """
         Print a critical message to the standard output, in red color
-        
+
         Args:
             msg (Message): The message to print
             caller_info (Callerinfo|None): The caller info. If None, the caller info will be retrieved from the stack.
@@ -216,7 +218,7 @@ class Logger:
         """
         Print a message to the standard output, in yellow color
         It is used to pass information to the user about the global execution of the program
-        
+
         Args:
             msg (Message): The message to print
             color (COLORS): The color of the message. It can be one of the COLORS enum values.
@@ -332,7 +334,7 @@ class Logger:
 def trace(msg : Message):
     """
     Print a trace message to the standard output, in blue color\n
-    
+
     Args:
         msg (Message): The message to print
     """
@@ -341,7 +343,7 @@ def trace(msg : Message):
 def debug(msg : Message):
     """
     Print a debug message to the standard output, in blue color\n
-    
+
     Args:
         msg (Message): The message to print
     """
@@ -368,7 +370,7 @@ def warning(msg : Message):
 def error(msg : Message):
     """
     Print an error message to the standard output, in red color\n
-    
+
     Args:
         msg (Message): The message to print
     """

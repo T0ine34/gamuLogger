@@ -11,11 +11,11 @@
 Utility class for the logger module
 """
 
+import inspect
 import sys
 import threading
 from enum import Enum
 from typing import Any, Callable, Protocol
-import inspect
 
 
 class Module:
