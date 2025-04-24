@@ -1,0 +1,61 @@
+name: On Release
+#for every push on any branch
+on:
+  push:
+    branches:
+      - "*"
+
+
+jobs:
+  build-python:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # Fetch all history for all tags
+
+    - name: install make
+      run: sudo apt-get install make
+
+    - name: setup Python 3.12
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.12
+
+    - name: build
+      run : make VERSION=${{ github.ref_name }}
+
+    - name: Store artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: python-package-distributions
+        path: dist/*
+
+    - name: Publish release assets
+      uses: AButler/upload-release-assets@v3.0
+      with:
+        files: "dist/*"
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+
+  tests:
+    runs-on: ubuntu-latest
+    needs: build-python
+    steps:
+
+      - name: Install python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.12
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: python-package-distributions
+
+      - name: Install dependencies from the wheel
+        run: pip install dist/*.whl
+
+      - name: Run tests
+        run: pytest tests

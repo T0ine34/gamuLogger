@@ -3,7 +3,7 @@ import tempfile
 
 import pytest
 
-from gamuLogger.customTypes import COLORS, Levels, TerminalTarget, Target
+from gamuLogger.custom_types import COLORS, Levels, Target, TerminalTarget
 
 
 class TempFile:
@@ -33,6 +33,7 @@ class Test_Levels:
         assert Levels.ERROR <= Levels.CRITICAL
 
     def test_from_string(self):
+        assert Levels.from_string('trace') == Levels.TRACE
         assert Levels.from_string('debug') == Levels.DEBUG
         assert Levels.from_string('info') == Levels.INFO
         assert Levels.from_string('warning') == Levels.WARNING
@@ -41,7 +42,7 @@ class Test_Levels:
         assert Levels.from_string('invalid') == Levels.INFO
 
     def test_str(self):
-        assert str(Levels.TRACE) ==    '  DEBUG   '
+        assert str(Levels.TRACE) ==         '  TRACE   '
         assert str(Levels.DEBUG) ==         '  DEBUG   '
         assert str(Levels.INFO) ==          '   INFO   '
         assert str(Levels.WARNING) ==       ' WARNING  '
@@ -50,7 +51,7 @@ class Test_Levels:
 
     def test_color(self):
         assert Levels.TRACE.color() == COLORS.BLUE
-        assert Levels.DEBUG.color() == COLORS.BLUE
+        assert Levels.DEBUG.color() == COLORS.CYAN
         assert Levels.INFO.color() == COLORS.GREEN
         assert Levels.WARNING.color() == COLORS.YELLOW
         assert Levels.ERROR.color() == COLORS.RED

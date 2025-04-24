@@ -296,7 +296,7 @@ class Levels(Enum):
             case Levels.TRACE:
                 return COLORS.BLUE
             case Levels.DEBUG:
-                return COLORS.MAGENTA
+                return COLORS.CYAN
             case Levels.INFO:
                 return COLORS.GREEN
             case Levels.WARNING:

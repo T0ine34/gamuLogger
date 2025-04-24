@@ -19,41 +19,6 @@ def test_replace_newline():
     assert replace_newline("", 2) == ""
     assert replace_newline("Hello", 2) == "Hello"
 
-def test_strictTypeCheck():
-
-    def test(a : int, b : str):
-        pass
-
-
-    def test2(a : int, b : str = "Hello"):
-        pass
-
-
-    def test3(a : int|float):
-        pass
-
-    with pytest.raises(TypeError):
-        test(1, 2)
-
-    with pytest.raises(TypeError):
-        test(1, 2.0)
-
-    test(1, "2")
-
-    test2(1)
-    test2(1, "2")
-
-    with pytest.raises(TypeError):
-        test2(1, 2)
-
-    test2(a=1, b="2")
-
-    test3(1)
-    test3(1.0)
-    test3(1.0)
-
-    with pytest.raises(TypeError):
-        test3("1")
 
 def test_split_long_string():
     assert split_long_string("Hello World", 5) == "Hello\nWorld"

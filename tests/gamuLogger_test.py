@@ -6,11 +6,10 @@ from time import sleep
 
 import pytest
 
-from gamuLogger.gamuLogger import (Levels,  # type: ignore
-                                   TerminalTarget, Logger, Module, Target,
-                                   chrono, critical, debug, debug_func,
-                                   trace, trace_func, error, info,
-                                   message, warning)
+from gamuLogger.gamu_logger import Levels  # type: ignore
+from gamuLogger.gamu_logger import (Logger, Module, Target, TerminalTarget,
+                                    chrono, critical, debug, debug_func, error,
+                                    info, message, trace, trace_func, warning)
 
 
 class Test_Logger:
@@ -22,7 +21,7 @@ class Test_Logger:
         captured = capsys.readouterr()
         result = captured.out
         print(result)
-        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  DEBUG   .*\] This is a trace message", result)
+        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  TRACE   .*\] This is a trace message", result)
 
     def test_debug(self, capsys):
         Logger.reset()
@@ -182,10 +181,10 @@ class Test_Logger:
         result = captured.out #type: str
         print(result)
         result = result.split("\n") #type: list[str]
-        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  DEBUG   .*\] Calling test with", result[0])
+        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  TRACE   .*\] Calling test with", result[0])
         assert re.match(r"                                 \| args: \(\)", result[1])
         assert re.match(r"                                 \| kwargs: {}", result[2])
-        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  DEBUG   .*\] Function test took 0:00:00 to execute and returned \"This is a trace function\"", result[3])
+        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  TRACE   .*\] Function test took 0:00:00 to execute and returned \"This is a trace function\"", result[3])
 
     def test_debug_func(self, capsys):
         Logger.reset()

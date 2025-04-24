@@ -11,5 +11,3 @@ Antoine Buirey 2025
 from .gamu_logger import (Levels, Logger, Module, Target, TerminalTarget,
                           chrono, critical, debug, debug_func, error, info,
                           message, trace, trace_func, warning)
-
-__version__ = "3.1.0"

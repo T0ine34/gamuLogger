@@ -4,23 +4,27 @@ TESTS = $(wildcard tests/*.py)
 
 TEMP_DIR = build
 
+VERSION = 0.1.0
+
 .PHONY: all clean install tests wheel archive
 
 all: install tests
 
 env:
-	python3 -m venv env
+	python3.12 -m venv env
 	env/bin/pip install --upgrade pip pytest setuptools wheel build
 
 wheel: $(SOURCES) env
 	mkdir -p $(TEMP_DIR)
-	env/bin/python -m build --outdir $(TEMP_DIR) --wheel
+	env/bin/python build_package.py --outdir $(TEMP_DIR) --wheel --version $(VERSION)
+	mkdir -p dist
 	cp $(TEMP_DIR)/*.whl dist/
 	rm -rf $(TEMP_DIR)
 
 archive: $(SOURCES) env
 	mkdir -p $(TEMP_DIR)
-	env/bin/python -m build --outdir $(TEMP_DIR) --sdist
+	env/bin/python build_package.py --outdir $(TEMP_DIR) --sdist --version $(VERSION)
+	mkdir -p dist
 	cp $(TEMP_DIR)/*.tar.gz dist/
 	rm -rf $(TEMP_DIR)
 
