@@ -29,4 +29,5 @@ jobs:
     - name: Store artifact
       uses: actions/upload-artifact@v4
       with:
-        path: dist/gamuLogger-${{ github.ref_name }}-none-any.whl
+        path: dist/*
+        name: dist
