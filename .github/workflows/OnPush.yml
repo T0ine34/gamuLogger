@@ -5,28 +5,41 @@ on:
     branches:
       - "*"
 
-
 jobs:
   build-python:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Check branch name format
+      id: check_branch
+      run: |
+        if [[ "${GITHUB_REF_NAME}" =~ ^[0-9]+\.[0-9]+\.[0-9]+-dev$ ]]; then
+          echo "match=true" >> $GITHUB_OUTPUT
+        else
+          echo "match=false" >> $GITHUB_OUTPUT
+        fi
+
     - uses: actions/checkout@v4
+      if: steps.check_branch.outputs.match == 'true'
       with:
         fetch-depth: 0 # Fetch all history for all tags
 
     - name: install make
+      if: steps.check_branch.outputs.match == 'true'
       run: sudo apt-get install -y make
 
     - name: setup Python 3.12
+      if: steps.check_branch.outputs.match == 'true'
       uses: actions/setup-python@v5
       with:
         python-version: 3.12
 
     - name: build
-      run : make VERSION=${{ github.ref_name }}
+      if: steps.check_branch.outputs.match == 'true'
+      run: make VERSION=${{ github.ref_name }}
 
     - name: Store artifact
+      if: steps.check_branch.outputs.match == 'true'
       uses: actions/upload-artifact@v4
       with:
         path: dist/*
