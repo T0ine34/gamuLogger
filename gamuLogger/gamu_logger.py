@@ -124,7 +124,7 @@ class Logger:
         if not isinstance(msg, str):
             msg = dumps(msg, indent=4, cls=CustomEncoder)
         msg = split_long_string(msg, 150)
-        return f" {replace_newline(msg, 33 + (20 if Module.exist(*caller_info) else 0))}"
+        return f" {replace_newline(msg, 32 + (20 if Module.exist(*caller_info) else 0))}"
 
     def __print_message_in_target(self, msg : str, color : COLORS, target : Target):
         if target.type == Target.Type.TERMINAL:
