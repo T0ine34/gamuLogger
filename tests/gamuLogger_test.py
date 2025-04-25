@@ -13,65 +13,38 @@ from gamuLogger.gamu_logger import (Logger, Module, Target, TerminalTarget,
 
 
 class Test_Logger:
-    def test_trace(self, capsys):
+
+
+    @pytest.mark.parametrize(
+        "level, expected",
+        [
+            (Logger.trace,    r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  TRACE   .*\] This is a message"),
+            (Logger.debug,    r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  DEBUG   .*\] This is a message"),
+            (Logger.info,     r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*   INFO   .*\] This is a message"),
+            (Logger.warning,  r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.* WARNING  .*\] This is a message"),
+            (Logger.error,    r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  ERROR   .*\] This is a message"),
+            (Logger.critical, r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.* CRITICAL .*\] This is a message")
+        ],
+        ids=[
+            "TRACE",
+            "DEBUG",
+            "INFO",
+            "WARNING",
+            "ERROR",
+            "CRITICAL"
+        ],
+    )
+    def test_levels(self, level, expected, capsys):
         Logger.reset()
         Module.clear()
         Logger.set_level("stdout", Levels.TRACE)
-        trace("This is a trace message")
+        Logger.set_module("test")
+        level("This is a message")
         captured = capsys.readouterr()
         result = captured.out
         print(result)
-        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  TRACE   .*\] This is a trace message", result)
+        assert re.match(expected, result)
 
-    def test_debug(self, capsys):
-        Logger.reset()
-        Module.clear()
-        Logger.set_level("stdout", Levels.DEBUG)
-        debug("This is a debug message")
-        captured = capsys.readouterr()
-        result = captured.out
-        print(result)
-        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  DEBUG   .*\] This is a debug message", result)
-
-    def test_info(self, capsys):
-        Logger.reset()
-        Module.clear()
-        Logger.set_level("stdout", Levels.INFO)
-        info("This is an info message")
-        captured = capsys.readouterr()
-        result = captured.out
-        print(result)
-        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*   INFO   .*\] This is an info message", result)
-
-    def test_warning(self, capsys):
-        Logger.reset()
-        Module.clear()
-        Logger.set_level("stdout", Levels.WARNING)
-        warning("This is a warning message")
-        captured = capsys.readouterr()
-        result = captured.out
-        print(result)
-        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.* WARNING  .*\] This is a warning message", result)
-
-    def test_error(self, capsys):
-        Logger.reset()
-        Module.clear()
-        Logger.set_level("stdout", Levels.ERROR)
-        error("This is an error message")
-        captured = capsys.readouterr()
-        result = captured.out
-        print(result)
-        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  ERROR   .*\] This is an error message", result)
-
-    def test_critical(self, capsys):
-        Logger.reset()
-        Module.clear()
-        Logger.set_level("stdout", Levels.CRITICAL)
-        critical("This is a critical message")
-        captured = capsys.readouterr()
-        result = captured.out
-        print(result)
-        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.* CRITICAL .*\] This is a critical message", result)
 
     def test_message(self, capsys):
         Logger.reset()
