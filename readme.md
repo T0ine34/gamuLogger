@@ -26,7 +26,7 @@ pip install gamuLogger
 
 - First you need to import the package:
     ```python
-    from gamuLogger import trace, debug, info, warning, error, critical, Logger, Levels
+    from gamuLogger import trace, debug, info, warning, error, fatal, Logger, Levels
     ```
 > note: you can also only import the members you need instead of importing all of them.
 

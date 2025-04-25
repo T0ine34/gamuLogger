@@ -9,5 +9,5 @@ Antoine Buirey 2025
 """
 
 from .gamu_logger import (Levels, Logger, Module, Target, TerminalTarget,
-                          chrono, critical, debug, debug_func, error, info,
+                          chrono, debug, debug_func, error, fatal, info,
                           message, trace, trace_func, warning)

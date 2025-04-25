@@ -1,7 +1,7 @@
 import pytest
 
-from gamuLogger.custom_types import (COLORS, Levels, LoggerConfig, Module,
-                                     Target, TerminalTarget)
+from gamuLogger.custom_types import (COLORS, Levels, Module, Target,
+                                     TerminalTarget)
 
 
 class TestModule:
@@ -378,17 +378,17 @@ class TestLevels:
             ("info", Levels.INFO),
             ("warning", Levels.WARNING),
             ("error", Levels.ERROR),
-            ("critical", Levels.CRITICAL),
+            ("fatal", Levels.FATAL),
             ("TRACE", Levels.TRACE),  # Case-insensitive
             ("DeBuG", Levels.DEBUG),  # Case-insensitive
             ("iNfO", Levels.INFO),  # Case-insensitive
             ("WARNING", Levels.WARNING), # Case-insensitive
             ("ErRoR", Levels.ERROR),  # Case-insensitive
-            ("CRITICAL", Levels.CRITICAL), # Case-insensitive
+            ("FATAL", Levels.FATAL), # Case-insensitive
             ("invalid", Levels.INFO),  # Invalid level
             ("", Levels.INFO),  # Empty string
         ],
-        ids=["trace", "debug", "info", "warning", "error", "critical", "trace_uppercase", "debug_mixedcase", "info_mixedcase", "warning_uppercase", "error_mixedcase", "critical_uppercase", "invalid", "empty"]
+        ids=["trace", "debug", "info", "warning", "error", "fatal", "trace_uppercase", "debug_mixedcase", "info_mixedcase", "warning_uppercase", "error_mixedcase", "fatal_uppercase", "invalid", "empty"]
     )
     def test_from_string(self, level_str, expected_level):
 
@@ -401,14 +401,14 @@ class TestLevels:
     @pytest.mark.parametrize(
         "level, expected_str",
         [
-            (Levels.TRACE, '  TRACE   '),
-            (Levels.DEBUG, '  DEBUG   '),
-            (Levels.INFO, '   INFO   '),
-            (Levels.WARNING, ' WARNING  '),
-            (Levels.ERROR, '  ERROR   '),
-            (Levels.CRITICAL, ' CRITICAL '),
+            (Levels.TRACE,   '  TRACE  '),
+            (Levels.DEBUG,   '  DEBUG  '),
+            (Levels.INFO,    '  INFO   '),
+            (Levels.WARNING, ' WARNING '),
+            (Levels.ERROR,   '  ERROR  '),
+            (Levels.FATAL,   '  FATAL  '),
         ],
-        ids=["trace", "debug", "info", "warning", "error", "critical"]
+        ids=["trace", "debug", "info", "warning", "error", "fatal"]
     )
     def test_str(self, level, expected_str):
 
@@ -426,9 +426,9 @@ class TestLevels:
             (Levels.INFO, 2),
             (Levels.WARNING, 3),
             (Levels.ERROR, 4),
-            (Levels.CRITICAL, 5),
+            (Levels.FATAL, 5),
         ],
-        ids=["trace", "debug", "info", "warning", "error", "critical"]
+        ids=["trace", "debug", "info", "warning", "error", "fatal"]
     )
     def test_int(self, level, expected_int):
 
@@ -464,9 +464,9 @@ class TestLevels:
             (Levels.INFO, COLORS.GREEN),
             (Levels.WARNING, COLORS.YELLOW),
             (Levels.ERROR, COLORS.RED),
-            (Levels.CRITICAL, COLORS.DARK_RED),
+            (Levels.FATAL, COLORS.DARK_RED),
         ],
-        ids=["trace", "debug", "info", "warning", "error", "critical"]
+        ids=["trace", "debug", "info", "warning", "error", "fatal"]
     )
     def test_color(self, level, expected_color):
 
@@ -842,123 +842,3 @@ class TestTarget:
         # Act & Assert
         with pytest.raises(ValueError):
             Target.unregister(target_name)
-
-
-class TestLoggerConfig:
-    def test_init(self):
-        # Act
-        config = LoggerConfig()
-
-        # Assert
-        assert config.show_threads_name is False
-        assert config.show_process_name is False
-
-    def test_clear(self):
-        # Arrange
-        config = LoggerConfig()
-        config.show_threads_name = True
-        config.show_process_name = True
-
-        # Act
-        config.clear()
-
-        # Assert
-        assert not config.show_threads_name
-        assert not config.show_process_name
-
-    @pytest.mark.parametrize(
-        "key, expected_value",
-        [
-            ("show_threads_name", False),
-            ("show_process_name", False),
-        ],
-        ids=["show_threads_name", "show_process_name"]
-    )
-    def test_getitem(self, key, expected_value):
-        # Arrange
-        config = LoggerConfig()
-
-        # Act
-        value = config[key]
-
-        # Assert
-        assert value == expected_value
-
-    @pytest.mark.parametrize(
-        "key",
-        [
-            "invalid_key",
-            "",
-            None
-        ],
-        ids=["invalid_key", "empty_string", "none"]
-
-    )
-    def test_getitem_invalid_key(self, key):
-        # Arrange
-        config = LoggerConfig()
-
-        # Act & Assert
-        with pytest.raises(KeyError):
-            config[key]
-
-    @pytest.mark.parametrize(
-        "key, value",
-        [
-            ("show_threads_name", True),
-            ("show_process_name", True),
-            ("show_threads_name", False),
-            ("show_process_name", 123),
-        ],
-        ids=["show_threads_name_true", "show_process_name_true", "show_threads_name_false", "show_process_name_int"]
-    )
-    def test_setitem(self, key, value):
-        # Arrange
-        config = LoggerConfig()
-
-        # Act
-        config[key] = value
-
-        # Assert
-        assert config[key] == value
-
-
-    @pytest.mark.parametrize(
-        "key, value",
-        [
-            ("invalid_key", True),
-            ("", 123),
-            (None, False)
-        ],
-        ids=["invalid_key", "empty_string", "none"]
-
-    )
-    def test_setitem_invalid_key(self, key, value):
-        # Arrange
-        config = LoggerConfig()
-
-        # Act & Assert
-        with pytest.raises(KeyError):
-            config[key] = value
-
-    @pytest.mark.parametrize(
-        "show_threads_name, show_process_name, expected_str",
-        [
-            (False, False, "LoggerConfig(show_threads_name=False, show_process_name=False)"),
-            (True, False, "LoggerConfig(show_threads_name=True, show_process_name=False)"),
-            (False, True, "LoggerConfig(show_threads_name=False, show_process_name=True)"),
-            (True, True, "LoggerConfig(show_threads_name=True, show_process_name=True)"),
-        ],
-        ids=["false_false", "true_false", "false_true", "true_true"]
-    )
-    def test_str(self, show_threads_name, show_process_name, expected_str):
-        # Arrange
-        config = LoggerConfig()
-        config.show_threads_name = show_threads_name
-        config.show_process_name = show_process_name
-
-        # Act
-        result = str(config)
-
-        # Assert
-        assert result == expected_str

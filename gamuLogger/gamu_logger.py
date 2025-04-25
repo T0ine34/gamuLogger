@@ -19,9 +19,9 @@ from datetime import datetime
 from json import dumps
 from typing import Any, Callable, TypeVar
 
-from .custom_types import (COLORS, Callerinfo, Levels, LoggerConfig,
-                           LoggerException, Message, Module, Target,
-                           TerminalTarget)
+from .config import Config
+from .custom_types import (COLORS, Callerinfo, Levels, LoggerException,
+                           Message, Module, Target, TerminalTarget)
 from .utils import (CustomEncoder, colorize, get_caller_info,
                     get_executable_formatted, get_time, replace_newline,
                     split_long_string)
@@ -42,7 +42,10 @@ class Logger:
         return cls.__instance
 
     def __init__(self):
-        self.config = LoggerConfig()
+        self.config = Config(
+            show_process_name = False,
+            show_threads_name = False,
+        )
 
         #configuring default target
         default_target = Target(TerminalTarget.STDOUT)
@@ -87,14 +90,14 @@ class Logger:
         return f"[{get_time()}]"
 
     def __log_element_process_name(self, target : Target) -> str:
-        if self.config.show_process_name:
+        if self.config['show_process_name']:
             if target.type == Target.Type.TERMINAL:
                 return f" [{COLORS.CYAN}{get_executable_formatted().center(20)}{COLORS.RESET}]"
             return f" [{get_executable_formatted().center(20)}]"
         return ""
 
     def __log_element_thread_name(self, target : Target) -> str:
-        if self.config.show_threads_name:
+        if self.config['show_threads_name']:
             name = threading.current_thread().name.center(30)
             if target.type == Target.Type.TERMINAL:
                 return f" [ {COLORS.CYAN}{name}{COLORS.RESET} ]"
@@ -202,9 +205,9 @@ class Logger:
         Logger.get_instance().__print(Levels.ERROR, msg, caller_info) #pylint: disable=W0212
 
     @staticmethod
-    def critical(msg : Message, caller_info : Callerinfo|None = None):
+    def fatal(msg : Message, caller_info : Callerinfo|None = None):
         """
-        Print a critical message to the standard output, in red color
+        Print a fatal message to the standard output, in red color
 
         Args:
             msg (Message): The message to print
@@ -212,7 +215,7 @@ class Logger:
         """
         if caller_info is None:
             caller_info = get_caller_info()
-        Logger.get_instance().__print(Levels.CRITICAL, msg, caller_info) #pylint: disable=W0212
+        Logger.get_instance().__print(Levels.FATAL, msg, caller_info) #pylint: disable=W0212
 
     @staticmethod
     def message(msg : Message, color : COLORS = COLORS.NONE):
@@ -275,7 +278,7 @@ class Logger:
         Args:
             value (bool): If True, the thread name will be shown. If False, it will not be shown.
         """
-        Logger.get_instance().config.show_threads_name = value
+        Logger.get_instance().config['show_threads_name'] = value
 
     @staticmethod
     def show_process_name(value : bool = True):
@@ -284,7 +287,7 @@ class Logger:
         Args:
             value (bool): If True, the process name will be shown. If False, it will not be shown.
         """
-        Logger.get_instance().config.show_process_name = value
+        Logger.get_instance().config['show_process_name'] = value
 
 
     @staticmethod
@@ -377,14 +380,14 @@ def error(msg : Message):
     """
     Logger.error(msg, get_caller_info())
 
-def critical(msg : Message):
+def fatal(msg : Message):
     """
-    Print a critical message to the standard output, in red color\n
+    Print a fatal message to the standard output, in red color\n
 
     Args:
         msg (Message): The message to print
     """
-    Logger.critical(msg, get_caller_info())
+    Logger.fatal(msg, get_caller_info())
 
 
 def message(msg : Message, color : COLORS = COLORS.NONE):

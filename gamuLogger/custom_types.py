@@ -232,7 +232,7 @@ class Levels(Enum):
     - INFO:         this level is used to print information about the normal execution of the program
     - WARNING:      this level is used to print warnings about the execution of the program (non-blocking, but may lead to errors)
     - ERROR:        this level is used to print errors that may lead to the termination of the program
-    - CRITICAL:     this level is used to print critical errors that lead to the termination of the program, typically used in largest except block
+    - FATAL:     this level is used to print fatal errors that lead to the termination of the program, typically used in largest except block
     """
 
     TRACE = 0       # this level is used to print very detailed information, it may contain sensitive information
@@ -240,7 +240,7 @@ class Levels(Enum):
     INFO = 2        # this level is used to print information about the normal execution of the program
     WARNING = 3     # this level is used to print warnings about the execution of the program (non-blocking, but may lead to errors)
     ERROR = 4       # this level is used to print errors that may lead to the termination of the program
-    CRITICAL = 5    # this level is used to print critical errors that lead to the termination of the program, typically used in largest except block
+    FATAL = 5    # this level is used to print fatal errors that lead to the termination of the program, typically used in largest except block
 
 
     @staticmethod
@@ -260,29 +260,29 @@ class Levels(Enum):
                 return Levels.WARNING
             case 'error':
                 return Levels.ERROR
-            case 'critical':
-                return Levels.CRITICAL
+            case 'fatal':
+                return Levels.FATAL
             case _:
                 return Levels.INFO
 
     def __str__(self) -> str:
         """
         Return the string representation of the level,
-        serialized to 10 characters (centered with spaces)
+        serialized to 9 characters (centered with spaces)
         """
         match self:
             case Levels.TRACE:
-                return '  TRACE   '
+                return '  TRACE  '
             case Levels.DEBUG:
-                return '  DEBUG   '
+                return '  DEBUG  '
             case Levels.INFO:
-                return '   INFO   '
+                return '  INFO   '
             case Levels.WARNING:
-                return ' WARNING  '
+                return ' WARNING '
             case Levels.ERROR:
-                return '  ERROR   '
-            case Levels.CRITICAL:
-                return ' CRITICAL '
+                return '  ERROR  '
+            case Levels.FATAL:
+                return '  FATAL  '
 
     def __int__(self):
         return self.value
@@ -298,7 +298,7 @@ class Levels(Enum):
         - INFO: GREEN
         - WARNING: YELLOW
         - ERROR: RED
-        - CRITICAL: DARK_RED
+        - FATAL: DARK_RED
         """
         match self:
             case Levels.TRACE:
@@ -311,7 +311,7 @@ class Levels(Enum):
                 return COLORS.YELLOW
             case Levels.ERROR:
                 return COLORS.RED
-            case Levels.CRITICAL:
+            case Levels.FATAL:
                 return COLORS.DARK_RED
 
 class TerminalTarget(Enum):
@@ -516,44 +516,6 @@ class Target:
             Target.__instances.pop(name, None)
         else:
             raise ValueError(f"Target {name} does not exist")
-
-class LoggerConfig:
-    """
-    A class that represents the configuration of the logger.
-    """
-    def __init__(self):
-        self.show_threads_name = False
-        self.show_process_name = False
-
-
-    def clear(self):
-        """
-        Clear the logger config.
-        """
-        self.show_threads_name = False
-        self.show_process_name = False
-
-
-    def __getitem__(self, key: str) -> Any:
-        match key:
-            case 'show_threads_name':
-                return self.show_threads_name
-            case 'show_process_name':
-                return self.show_process_name
-            case _:
-                raise KeyError(f"Parameter {key} not found")
-
-    def __setitem__(self, key: str, value: Any):
-        match key:
-            case 'show_threads_name':
-                self.show_threads_name = value
-            case 'show_process_name':
-                self.show_process_name = value
-            case _:
-                raise KeyError(f"Parameter {key} not found")
-
-    def __str__(self):
-        return f"LoggerConfig(show_threads_name={self.show_threads_name}, show_process_name={self.show_process_name})"
 
 
 class SupportsStr(Protocol): #pylint: disable=R0903

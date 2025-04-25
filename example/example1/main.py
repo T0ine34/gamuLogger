@@ -1,6 +1,7 @@
 import argparse
 
-from gamuLogger import Levels, Logger, critical, debug, debug_func, error, info, trace
+from gamuLogger import (Levels, Logger, debug, debug_func, error, fatal, info,
+                        trace)
 
 Logger.set_module("example1")
 
@@ -40,7 +41,7 @@ def main():
         result = division(a, b)
         info(f"Result: {result}")
     except Exception as e:
-        critical(f"Error: {e}")
+        fatal(f"Error: {e}")
         exit(1)
     finally:
         trace("operation finished")

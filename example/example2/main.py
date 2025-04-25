@@ -2,7 +2,7 @@ import argparse
 import threading
 import time
 
-from gamuLogger import Logger, critical, debug, debug_func, error, info
+from gamuLogger import Logger, debug, debug_func, error, fatal, info
 
 Logger.show_process_name()
 Logger.show_threads_name()
