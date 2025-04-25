@@ -50,8 +50,8 @@ class Test_Levels:
         assert str(Levels.CRITICAL) ==      ' CRITICAL '
 
     def test_color(self):
-        assert Levels.TRACE.color() == COLORS.BLUE
-        assert Levels.DEBUG.color() == COLORS.CYAN
+        assert Levels.TRACE.color() == COLORS.CYAN
+        assert Levels.DEBUG.color() == COLORS.BLUE
         assert Levels.INFO.color() == COLORS.GREEN
         assert Levels.WARNING.color() == COLORS.YELLOW
         assert Levels.ERROR.color() == COLORS.RED
