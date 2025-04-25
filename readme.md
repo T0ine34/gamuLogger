@@ -61,7 +61,7 @@ Logger.set_level("stdout", Levels.INFO); # this mean yhat all logs with level hi
 
 Logger.set_module('my-module'); # set the module name for this file to 'my-module' (this will be displayed in the log message) (by default, no module name is set)
 
-Logger.add_target("data.log", Levels.DEBUG) # add a new target to the logger (this will log all messages with level higher than than DEBUG to the file 'data.log')
+Logger.add_target("data.log", Levels.DEBUG) # add a new target to the logger (this will log all messages with level higher than DEBUG to the file 'data.log')
 ```
 
 > Please note that the logger can be used without any manual configuration. The default configuration is:
