@@ -294,9 +294,9 @@ class Levels(Enum):
         """
         match self:
             case Levels.TRACE:
-                return COLORS.BLUE
-            case Levels.DEBUG:
                 return COLORS.CYAN
+            case Levels.DEBUG:
+                return COLORS.BLUE
             case Levels.INFO:
                 return COLORS.GREEN
             case Levels.WARNING:
