@@ -16,7 +16,7 @@ jobs:
         fetch-depth: 0 # Fetch all history for all tags
 
     - name: install make
-      run: sudo apt-get install make
+      run: sudo apt-get install -y make
 
     - name: setup Python 3.12
       uses: actions/setup-python@v5
