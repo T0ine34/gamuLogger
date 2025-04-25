@@ -83,14 +83,22 @@ class Module:
             return True
         return False
 
+    @staticmethod
+    def exist_exact(filename : str, function : str) -> bool:
+        """
+        Check if the module instance exists by its filename and function name.
+        """
+        return (filename, function) in Module.__instances
+
 
     @staticmethod
     def delete(filename : str, function : str):
         """
         Delete the module instance by its filename and function name.
         """
-        if Module.exist(filename, function):
-            del Module.__instances[(filename, function)]
+        if Module.exist_exact(filename, function):
+            # del Module.__instances[(filename, function)]
+            Module.__instances.pop((filename, function), None)
         else:
             raise ValueError(f"No module found for file {filename} and function {function}")
 
@@ -374,9 +382,6 @@ class Target:
 
     def __init__(self, target : Callable[[str], None] | TerminalTarget, name : str|None = None):
 
-        if isinstance(target, str):
-            raise ValueError("The target must be a function or a TerminalTarget; use Target.from_file(file) to create a file target")
-
         if isinstance(target, TerminalTarget):
             match target:
                 case TerminalTarget.STDOUT:
@@ -385,10 +390,12 @@ class Target:
                     self.target = sys.stderr.write
             self.__type = Target.Type.TERMINAL
             self.__name = name if name is not None else str(target)
-        else:
+        elif hasattr(target, '__call__'):
             self.__type = Target.Type.FILE
             self.__name = name if name is not None else target.__name__
             self.target = target
+        else:
+            raise ValueError("The target must be a function or a TerminalTarget; use Target.from_file(file) to create a file target")
 
 
         self.properties : dict[str, Any] = {}
@@ -506,7 +513,7 @@ class Target:
         """
         name = target if isinstance(target, str) else target.name
         if Target.exist(name):
-            del Target.__instances[name]
+            Target.__instances.pop(name, None)
         else:
             raise ValueError(f"Target {name} does not exist")
 
