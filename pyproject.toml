@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "gamuLogger"
-version = "{version}"
+dynamic = ["version"]
 authors = [
   { name="Antoine Buirey", email="antoine.buirey@gmail.com" }
 ]
@@ -17,7 +17,10 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 
+
 [tool.pytest.ini_options]
 python_files = "tests/*_test.py"
-pythonpath = "src"
 testpaths = "tests"
+
+[tool.setuptools]
+packages = { find = { exclude = ["temp"] } }

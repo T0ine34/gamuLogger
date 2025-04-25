@@ -6,78 +6,50 @@ from time import sleep
 
 import pytest
 
-from gamuLogger.gamuLogger import (LEVELS, SENSITIVE_LEVELS,  # type: ignore
-                                   TERMINAL_TARGETS, Logger, Module, Target,
-                                   chrono, critical, debug, debugFunc,
-                                   deepDebug, deepDebugFunc, error, info,
-                                   message, warning)
+from gamuLogger.gamu_logger import Levels  # type: ignore
+from gamuLogger.gamu_logger import (Logger, Module, Target, TerminalTarget,
+                                    chrono, debug, debug_func, error, fatal,
+                                    info, message, trace, trace_func, warning)
 
 
 class Test_Logger:
-    def test_deepDebug(self, capsys):
-        Logger.reset()
-        Module.clear()
-        Logger.setLevel("stdout", LEVELS.DEEP_DEBUG)
-        deepDebug("This is a deep debug message")
-        captured = capsys.readouterr()
-        result = captured.out
-        print(result)
-        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  DEBUG   .*\] This is a deep debug message", result)
 
-    def test_debug(self, capsys):
-        Logger.reset()
-        Module.clear()
-        Logger.setLevel("stdout", LEVELS.DEBUG)
-        debug("This is a debug message")
-        captured = capsys.readouterr()
-        result = captured.out
-        print(result)
-        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  DEBUG   .*\] This is a debug message", result)
 
-    def test_info(self, capsys):
+    @pytest.mark.parametrize(
+        "level, expected",
+        [
+            (Logger.trace,    r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  TRACE  .*\] This is a message"),
+            (Logger.debug,    r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  DEBUG  .*\] This is a message"),
+            (Logger.info,     r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  INFO   .*\] This is a message"),
+            (Logger.warning,  r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.* WARNING .*\] This is a message"),
+            (Logger.error,    r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  ERROR  .*\] This is a message"),
+            (Logger.fatal,    r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  FATAL  .*\] This is a message")
+        ],
+        ids=[
+            "TRACE",
+            "DEBUG",
+            "INFO",
+            "WARNING",
+            "ERROR",
+            "FATAL"
+        ],
+    )
+    def test_levels(self, level, expected, capsys):
         Logger.reset()
         Module.clear()
-        Logger.setLevel("stdout", LEVELS.INFO)
-        info("This is an info message")
+        Logger.set_level("stdout", Levels.TRACE)
+        Logger.set_module("test")
+        level("This is a message")
         captured = capsys.readouterr()
         result = captured.out
         print(result)
-        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*   INFO   .*\] This is an info message", result)
+        assert re.match(expected, result)
 
-    def test_warning(self, capsys):
-        Logger.reset()
-        Module.clear()
-        Logger.setLevel("stdout", LEVELS.WARNING)
-        warning("This is a warning message")
-        captured = capsys.readouterr()
-        result = captured.out
-        print(result)
-        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.* WARNING  .*\] This is a warning message", result)
-
-    def test_error(self, capsys):
-        Logger.reset()
-        Module.clear()
-        Logger.setLevel("stdout", LEVELS.ERROR)
-        error("This is an error message")
-        captured = capsys.readouterr()
-        result = captured.out
-        print(result)
-        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  ERROR   .*\] This is an error message", result)
-
-    def test_critical(self, capsys):
-        Logger.reset()
-        Module.clear()
-        Logger.setLevel("stdout", LEVELS.CRITICAL)
-        critical("This is a critical message")
-        captured = capsys.readouterr()
-        result = captured.out
-        print(result)
-        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.* CRITICAL .*\] This is a critical message", result)
 
     def test_message(self, capsys):
         Logger.reset()
         Module.clear()
-        Logger.setLevel("stdout", LEVELS.INFO)
+        Logger.set_level("stdout", Levels.INFO)
         message("This is a message")
         captured = capsys.readouterr()
         result = captured.out
@@ -87,76 +59,76 @@ class Test_Logger:
     def test_multiline(self, capsys):
         Logger.reset()
         Module.clear()
-        Logger.setLevel("stdout", LEVELS.INFO)
+        Logger.set_level("stdout", Levels.INFO)
         info("This is a message\nThis is a message")
         captured = capsys.readouterr()
         result = captured.out
         print(result)
-        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*   INFO   .*\] This is a message\n                                 \| This is a message", result)
+        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  INFO   .*\] This is a message\n                                 \| This is a message", result)
 
     def test_module(self, capsys):
         Logger.reset()
         Module.clear()
-        Logger.setLevel("stdout", LEVELS.INFO)
-        Logger.setModule("test")
+        Logger.set_level("stdout", Levels.INFO)
+        Logger.set_module("test")
         info("This is a message")
         captured = capsys.readouterr()
         result = captured.out
         print(result)
-        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*   INFO   .*\] \[ .*      test     .* \] This is a message", result)
+        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  INFO   .*\] \[ .*      test     .* \] This is a message", result)
 
     def test_sub_module(self, capsys):
         Logger.reset()
         Module.clear()
-        Logger.setLevel("stdout", LEVELS.INFO)
-        Logger.setModule("test")
+        Logger.set_level("stdout", Levels.INFO)
+        Logger.set_module("test")
         def subFunc():
-            Logger.setModule("test.sub")
+            Logger.set_module("test.sub")
             info("This is a message")
         subFunc()
         captured = capsys.readouterr()
         result = captured.out
         print(result)
-        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*   INFO   .*\] \[ .*     test     .* \] \[.*    sub    .* \] This is a message", result)
+        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  INFO   .*\] \[ .*     test     .* \] \[.*    sub    .* \] This is a message", result)
 
     def test_sub_sub_module(self, capsys):
         Logger.reset()
         Module.clear()
-        Logger.setLevel("stdout", LEVELS.INFO)
-        Logger.setModule("test")
+        Logger.set_level("stdout", Levels.INFO)
+        Logger.set_module("test")
         def subFunc():
-            Logger.setModule("test.sub")
+            Logger.set_module("test.sub")
             def subSubFunc():
-                Logger.setModule("test.sub.sub")
+                Logger.set_module("test.sub.sub")
                 info("This is a message")
             subSubFunc()
         subFunc()
         captured = capsys.readouterr()
         result = captured.out
         print(result)
-        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*   INFO   .*\] \[ .*     test     .* \] \[.*    sub    .* \] \[.*    sub    .* \] This is a message", result)
+        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  INFO   .*\] \[ .*     test     .* \] \[.*    sub    .* \] \[.*    sub    .* \] This is a message", result)
 
     def test_multiline_module(self, capsys):
         Logger.reset()
         Module.clear()
-        Logger.setLevel("stdout", LEVELS.INFO)
-        Logger.setModule("test")
+        Logger.set_level("stdout", Levels.INFO)
+        Logger.set_module("test")
         info("This is a message\nThis is a message")
         captured = capsys.readouterr()
         result = captured.out
         print(result)
-        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*   INFO   .*\] \[ .*      test     .* \] This is a message\n                                                     \| This is a message", result)
+        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  INFO   .*\] \[ .*      test     .* \] This is a message\n                                                     \| This is a message", result)
 
     def test_too_long_module_name(self):
         Logger.reset()
         Module.clear()
         with pytest.raises(ValueError):
-            Logger.setModule("This module name is too long")
+            Logger.set_module("This module name is too long")
 
     def test_chrono(self, capsys):
         Logger.reset()
         Module.clear()
-        Logger.setLevel("stdout", LEVELS.DEBUG)
+        Logger.set_level("stdout", Levels.DEBUG)
 
         @chrono
         def test():
@@ -166,33 +138,33 @@ class Test_Logger:
         captured = capsys.readouterr()
         result = captured.out
         print(result)
-        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  DEBUG   .*\] Function test took 0:00:01.\d{6} to execute", result)
+        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  DEBUG  .*\] Function test took 0:00:01.\d{6} to execute", result)
 
-    def test_deepDebugFunc(self, capsys):
+    def test_trace_func(self, capsys):
         Logger.reset()
         Module.clear()
-        Logger.setLevel("stdout", LEVELS.DEEP_DEBUG)
+        Logger.set_level("stdout", Levels.TRACE)
 
-        @deepDebugFunc(True)
+        @trace_func(True)
         def test():
-            return "This is a deep debug function"
+            return "This is a trace function"
 
         test()
         captured = capsys.readouterr()
         result = captured.out #type: str
         print(result)
         result = result.split("\n") #type: list[str]
-        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  DEBUG   .*\] Calling test with", result[0])
+        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  TRACE  .*\] Calling test with", result[0])
         assert re.match(r"                                 \| args: \(\)", result[1])
         assert re.match(r"                                 \| kwargs: {}", result[2])
-        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  DEBUG   .*\] Function test took 0:00:00 to execute and returned \"This is a deep debug function\"", result[3])
+        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  TRACE  .*\] Function test took 0:00:00 to execute and returned \"This is a trace function\"", result[3])
 
-    def test_debugFunc(self, capsys):
+    def test_debug_func(self, capsys):
         Logger.reset()
         Module.clear()
-        Logger.setLevel("stdout", LEVELS.DEBUG)
+        Logger.set_level("stdout", Levels.DEBUG)
 
-        @debugFunc(False)
+        @debug_func(False)
         def test():
             return "This is a debug function"
 
@@ -201,60 +173,34 @@ class Test_Logger:
         result = captured.out #type: str
         print(result)
         result = result.split("\n") #type: list[str]
-        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  DEBUG   .*\] Calling test with", result[0])
+        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  DEBUG  .*\] Calling test with", result[0])
         assert re.match(r"                                 \| args: \(\)", result[1])
         assert re.match(r"                                 \| kwargs: {}", result[2])
-        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  DEBUG   .*\] Function test returned \"This is a debug function\"", result[3])
+        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  DEBUG  .*\] Function test returned \"This is a debug function\"", result[3])
 
-    def test_setLevel(self, capsys):
+    def test_set_level(self, capsys):
         Logger.reset()
         Module.clear()
-        Logger.setLevel("stdout", LEVELS.INFO)
+        Logger.set_level("stdout", Levels.INFO)
 
         debug("This is a debug message that should not be displayed")
 
-        Logger.setLevel("stdout", LEVELS.DEBUG)
+        Logger.set_level("stdout", Levels.DEBUG)
 
         debug("This is a debug message that should be displayed")
 
         captured = capsys.readouterr()
         result = captured.out
         print(result)
-        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  DEBUG   .*\] This is a debug message that should be displayed", result)
+        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  DEBUG  .*\] This is a debug message that should be displayed", result)
 
-    def test_setSensitiveMode(self, capsys):
-        Logger.reset()
-        Module.clear()
-
-        data = "abcdefg"
-
-        Logger.setSensitiveMode("stdout", SENSITIVE_LEVELS.HIDE)
-        Logger.addSensitiveData(data)
-        info("This is a message with a password: " + data)
-
-        captured = capsys.readouterr()
-        result = captured.out
-        print(result)
-
-        assert data not in result
-
-        Logger.setSensitiveMode("stdout", SENSITIVE_LEVELS.SHOW)
-        Logger.addSensitiveData(data)
-
-        info("This is a message with a password: " + data)
-
-        captured = capsys.readouterr()
-        result = captured.out
-        print(result)
-
-        assert data in result
 
     def test_fileTarget(self):
         Logger.reset()
         Module.clear()
 
         with tempfile.TemporaryDirectory() as tmpdirname:
-            Logger.addTarget(tmpdirname + "/test.log")
+            Logger.add_target(tmpdirname + "/test.log")
 
             info("This is a message")
 
@@ -264,7 +210,7 @@ class Test_Logger:
 
             print(result)
 
-            assert re.match(r"\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\] \[   INFO   \] This is a message", result)
+            assert re.match(r"\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\] \[  INFO   \] This is a message", result)
 
     def test_customFunctionAsTarget(self):
         Logger.reset()
@@ -274,7 +220,7 @@ class Test_Logger:
         def customFunction(message):
             out.append(message)
 
-        Logger.addTarget(customFunction)
+        Logger.add_target(customFunction)
 
         info("This is a message")
 
@@ -282,4 +228,4 @@ class Test_Logger:
 
         print(result)
 
-        assert re.match(r"\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\] \[   INFO   \] This is a message", result)
+        assert re.match(r"\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\] \[  INFO   \] This is a message", result)

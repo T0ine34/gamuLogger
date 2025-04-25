@@ -1,14 +1,15 @@
 import argparse
 
-from gamuLogger import LEVELS, Logger, critical, debug, debugFunc, error, info
+from gamuLogger import (Levels, Logger, debug, debug_func, error, fatal, info,
+                        trace)
 
-Logger.setModule("example1")
+Logger.set_module("example1")
 
-@debugFunc(True) # True or False to enable or disable chrono
+@debug_func(True) # True or False to enable or disable chrono
 def addition(a, b):
     return a + b
 
-@debugFunc(True)
+@debug_func(True)
 def division(a, b):
     return a / b
 
@@ -18,10 +19,15 @@ def main():
     parser.add_argument("a", type=int)
     parser.add_argument("b", type=int)
     parser.add_argument("--debug", action="store_true")
+    parser.add_argument("--trace", action="store_true")
 
     args = parser.parse_args()
     if args.debug:
-        Logger.setLevel('stdout', LEVELS.DEBUG)
+        Logger.set_level('stdout', Levels.DEBUG)
+    if args.trace:
+        Logger.set_level('stdout', Levels.TRACE)
+
+    trace("starting operation")
 
     a = args.a
     b = args.b
@@ -35,8 +41,10 @@ def main():
         result = division(a, b)
         info(f"Result: {result}")
     except Exception as e:
-        critical(f"Error: {e}")
+        fatal(f"Error: {e}")
         exit(1)
+    finally:
+        trace("operation finished")
 
 
 if __name__ == "__main__":

@@ -1,25 +1,47 @@
-VERSION = 3.0.1
+
+SOURCES = $(wildcard gamuLogger/*.py)
+TESTS = $(wildcard tests/*.py)
+
+TEMP_DIR = build
+
+VERSION = 0.1.0
+
+WHEEL = gamulogger-$(VERSION)-py3-none-any.whl
+ARCHIVE = gamulogger-$(VERSION).tar.gz
 
 
-.PHONY: all
+.PHONY: all clean install tests
 
-all: build install
+all: dist/$(WHEEL) dist/$(ARCHIVE)
 
-ensure_env_exists:
-	@if [ ! -d "env" ]; then \
-		python3 -m venv env; \
-	fi
+env:
+	python3.12 -m venv env
+	env/bin/pip install --upgrade pip pytest setuptools wheel build
 
-ensure_testenv_exists:
-	@if [ ! -d "testenv" ]; then \
-		python3 -m venv testenv; \
-	fi
+dist/$(WHEEL): $(SOURCES) env
+	mkdir -p $(TEMP_DIR)
+	env/bin/python build_package.py --outdir $(TEMP_DIR) --wheel --version $(VERSION)
+	mkdir -p dist
+	cp $(TEMP_DIR)/*.whl dist/
+	rm -rf $(TEMP_DIR)
 
-install_build_deps: ensure_env_exists
-	env/bin/pip install -r requirements-dev.txt
+dist/$(ARCHIVE): $(SOURCES) env
+	mkdir -p $(TEMP_DIR)
+	env/bin/python build_package.py --outdir $(TEMP_DIR) --sdist --version $(VERSION)
+	mkdir -p dist
+	cp $(TEMP_DIR)/*.tar.gz dist/
+	rm -rf $(TEMP_DIR)
 
-build: ensure_env_exists install_build_deps
-	env/bin/feanor --debug -pv $(VERSION) --no-tests
+install: dist/$(WHEEL) env
+	env/bin/python -m pip install --force-reinstall dist/$(WHEEL)
 
-install: ensure_testenv_exists
-	testenv/bin/pip install dist/*.whl --force-reinstall
+
+tests: $(TESTS) install env
+	env/bin/python -m pytest tests
+
+clean:
+	rm -rf build dist gamuLogger.egg-info
+	rm -rf env
+	rm -rf __pycache__
+	rm -rf gamuLogger/__pycache__
+	rm -rf tests/__pycache__

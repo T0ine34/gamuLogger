@@ -2,21 +2,21 @@ import argparse
 import threading
 import time
 
-from gamuLogger import Logger, critical, debug, debugFunc, error, info
+from gamuLogger import Logger, debug, debug_func, error, fatal, info
 
-Logger.showProcessName()
-Logger.showThreadsName()
+Logger.show_process_name()
+Logger.show_threads_name()
 
-Logger.setModule('example')
+Logger.set_module('example')
 
 def doSomething():
-    Logger.setModule('example.func1')
+    Logger.set_module('example.func1')
     for i in range(10):
         info(f"Doing something {i}")
         time.sleep(1)
 
 def doSomethingElse():
-    Logger.setModule('example.func2')
+    Logger.set_module('example.func2')
     for i in range(10):
         info(f"Doing something else {i}")
         time.sleep(1)
