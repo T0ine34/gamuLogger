@@ -6,30 +6,34 @@ TEMP_DIR = build
 
 VERSION = 0.1.0
 
-.PHONY: all clean install tests wheel archive
+WHEEL = gamulogger-$(VERSION)-py3-none-any.whl
+ARCHIVE = gamulogger-$(VERSION).tar.gz
 
-all: install tests
+
+.PHONY: all clean install tests
+
+all: dist/$(WHEEL) dist/$(ARCHIVE)
 
 env:
 	python3.12 -m venv env
 	env/bin/pip install --upgrade pip pytest setuptools wheel build
 
-wheel: $(SOURCES) env
+dist/$(WHEEL): $(SOURCES) env
 	mkdir -p $(TEMP_DIR)
 	env/bin/python build_package.py --outdir $(TEMP_DIR) --wheel --version $(VERSION)
 	mkdir -p dist
 	cp $(TEMP_DIR)/*.whl dist/
 	rm -rf $(TEMP_DIR)
 
-archive: $(SOURCES) env
+dist/$(ARCHIVE): $(SOURCES) env
 	mkdir -p $(TEMP_DIR)
 	env/bin/python build_package.py --outdir $(TEMP_DIR) --sdist --version $(VERSION)
 	mkdir -p dist
 	cp $(TEMP_DIR)/*.tar.gz dist/
 	rm -rf $(TEMP_DIR)
 
-install: wheel env
-	env/bin/python -m pip install --upgrade $(wildcard dist/*.whl)
+install: dist/$(WHEEL) env
+	env/bin/python -m pip install --force-reinstall dist/$(WHEEL)
 
 
 tests: $(TESTS) install env
