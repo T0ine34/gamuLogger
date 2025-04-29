@@ -163,19 +163,25 @@ def string2seconds(string : str) -> int:
     """
 
     time_units = {
-        'seconds': 1,
-        'minutes': 60,
-        'hours': 3600,
-        'days': 86400,
-        'weeks': 604800,
-        'months': 2592000,  # Approximate, as months vary in length (30 days)
-        'years': 31536000,   # Approximate, as years vary in length (365.25 days)
+        'second': 1,
+        'minute': 60,
+        'hour': 3600,
+        'day': 86400,
+        'week': 604800,
+        'month': 2592000,  # Approximate, as months vary in length (30 days)
+        'year': 31536000,   # Approximate, as years vary in length (365.25 days)
     }
 
     parts = string.split()
     total_seconds = 0
 
     for i in range(0, len(parts), 2):
+        if not parts[i].isdigit():
+            raise ValueError(f"Invalid value: {parts[i]}")
+        if i + 1 >= len(parts):
+            raise ValueError("Missing unit after value")
+        if not parts[i + 1] in time_units and not parts[i + 1][:-1] in time_units:
+            raise ValueError(f"Unknown time unit: {parts[i + 1]}")
         value = int(parts[i])
         unit = parts[i + 1].lower()
         if unit.endswith('s'):
@@ -204,17 +210,23 @@ def string2bytes(string : str) -> int:
         "GB": 1024**3,
         "TB": 1024**4,
         "PB": 1024**5,
-        "BYTES": 1,
-        "KILOBYTES": 1024,
-        "MEGABYTES": 1024**2,
-        "GIGABYTES": 1024**3,
-        "TERABYTES": 1024**4,
-        "PETABYTES": 1024**5,
+        "BYTE": 1,
+        "KILOBYTE": 1024,
+        "MEGABYTE": 1024**2,
+        "GIGABYTE": 1024**3,
+        "TERABYTE": 1024**4,
+        "PETABYTE": 1024**5,
     }
 
-    parts = string.split()
+    parts = string.upper().split()
     total_bytes = 0
     for i in range(0, len(parts), 2):
+        if not parts[i].isdigit():
+            raise ValueError(f"Invalid value: {parts[i]}")
+        if i + 1 >= len(parts):
+            raise ValueError("Missing unit after value")
+        if not parts[i + 1] in size_units and not parts[i + 1][:-1] in size_units:
+            raise ValueError(f"Unknown size unit: {parts[i + 1]}")
         value = int(parts[i])
         unit = parts[i + 1].upper()
         if unit.endswith('S'):

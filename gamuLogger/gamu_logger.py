@@ -20,12 +20,12 @@ from json import dumps
 from typing import Any, Callable, TypeVar
 
 from .config import Config
-from .custom_types import (COLORS, Callerinfo, Levels, LoggerException,
-                           Message, Module)
+from .custom_types import (COLORS, Callerinfo, Levels, LoggerException, Message)
 from .utils import (CustomEncoder, colorize, get_caller_info,
                     get_executable_formatted, get_time, replace_newline,
                     split_long_string)
 from .targets import Target, TerminalTarget
+from .module import Module
 
 T = TypeVar('T')
 
