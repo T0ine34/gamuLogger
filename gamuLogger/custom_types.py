@@ -240,8 +240,8 @@ class Levels(Enum):
     INFO = 2        # this level is used to print information about the normal execution of the program
     WARNING = 3     # this level is used to print warnings about the execution of the program (non-blocking, but may lead to errors)
     ERROR = 4       # this level is used to print errors that may lead to the termination of the program
-    FATAL = 5    # this level is used to print fatal errors that lead to the termination of the program, typically used in largest except block
-
+    FATAL = 5       # this level is used to print fatal errors that lead to the termination of the program, typically used in largest except block
+    NONE = 6        # this level is used to disable all logging
 
     @staticmethod
     def from_string(level : str) -> 'Levels': #pylint: disable=R0911
@@ -262,6 +262,8 @@ class Levels(Enum):
                 return Levels.ERROR
             case 'fatal':
                 return Levels.FATAL
+            case 'none':
+                return Levels.NONE
             case _:
                 return Levels.INFO
 
@@ -283,6 +285,8 @@ class Levels(Enum):
                 return '  ERROR  '
             case Levels.FATAL:
                 return '  FATAL  '
+            case Levels.NONE:
+                raise ValueError("NONE level is not a valid level for string representation")
 
     def __int__(self):
         return self.value
@@ -313,6 +317,8 @@ class Levels(Enum):
                 return COLORS.RED
             case Levels.FATAL:
                 return COLORS.DARK_RED
+            case Levels.NONE:
+                raise ValueError("NONE level is not a valid level for color")
 
 class TerminalTarget(Enum):
     """
