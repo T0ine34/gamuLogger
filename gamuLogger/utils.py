@@ -23,6 +23,7 @@ def get_caller_file_path(stack : Stack|None = None) -> str:
         return os.path.abspath(stack[-1].filename)
     return os.path.abspath(stack[2].filename)
 
+
 def get_caller_function_name(stack  : Stack|None = None) -> str:
     """
     Returns the name of the function that called this one,
@@ -44,12 +45,14 @@ def get_caller_function_name(stack  : Stack|None = None) -> str:
         return '.'.join(parents)
     return '.'.join(parents) + '.' + caller_name
 
+
 def get_caller_info(context : int = 1) -> Callerinfo:
     """
     Returns the file path and function name of the caller of the parent function
     """
     stack = inspect.stack(context)
     return get_caller_file_path(stack), get_caller_function_name(stack)
+
 
 def get_time():
     """
@@ -86,6 +89,7 @@ def split_long_string(string: str, length: int = 100) -> str:
         if current_line:
             result.append(' '.join(current_line))
     return '\n'.join(result)
+
 
 class CustomEncoder(JSONEncoder):
     """
@@ -130,6 +134,7 @@ def get_all_parents(filepath : str, lineno : int) -> list[str]:
                 parents.append(line.strip()[:-1].split(' ')[1].split('(')[0])
 
     return parents
+
 
 def colorize(color : COLORS, string : str):
     """

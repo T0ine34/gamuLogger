@@ -177,9 +177,3 @@ type Callerinfo = tuple[str, str]
 type Message = str|SupportsStr
 
 type Stack = list[inspect.FrameInfo]
-
-
-class LoggerException(BaseException):
-    """
-    A class that represents an exception in the logger system.
-    """
