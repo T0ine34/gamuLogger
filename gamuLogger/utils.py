@@ -139,10 +139,13 @@ def colorize(color : COLORS, string : str):
     return f"{color}{string}{COLORS.RESET}"
 
 
-def get_executable_formatted() -> str:
+def get_executable_formatted():
     """
-    Returns the name of the executable and the script name
+    Returns the formatted string of the current executable and its arguments.
+    If the executable is a Python interpreter, it includes the script name.
+    Otherwise, it only includes the executable name.
     """
-    executable = sys.executable.rsplit(os.sep, maxsplit=1)[-1]
-    program_name = sys.argv[0] if len(sys.argv) >= 1 else ""
-    return f"{executable} {program_name}" if 'python' in executable else executable
+    executable_name = os.path.basename(sys.executable)
+    if "python" in executable_name.lower():
+        return f"{executable_name} {' '.join(sys.argv)}"
+    return f"{executable_name}"

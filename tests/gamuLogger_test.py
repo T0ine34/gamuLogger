@@ -64,7 +64,7 @@ class Test_Logger:
         captured = capsys.readouterr()
         result = captured.out
         print(result)
-        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  INFO   .*\] This is a message\n                                 \| This is a message", result)
+        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  INFO   .*\] This is a message\n                                \| This is a message", result)
 
     def test_module(self, capsys):
         Logger.reset()
@@ -117,7 +117,7 @@ class Test_Logger:
         captured = capsys.readouterr()
         result = captured.out
         print(result)
-        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  INFO   .*\] \[ .*      test     .* \] This is a message\n                                                     \| This is a message", result)
+        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  INFO   .*\] \[ .*      test     .* \] This is a message\n                                                    \| This is a message", result)
 
     def test_too_long_module_name(self):
         Logger.reset()
@@ -155,8 +155,8 @@ class Test_Logger:
         print(result)
         result = result.split("\n") #type: list[str]
         assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  TRACE  .*\] Calling test with", result[0])
-        assert re.match(r"                                 \| args: \(\)", result[1])
-        assert re.match(r"                                 \| kwargs: {}", result[2])
+        assert re.match(r"                                \| args: \(\)", result[1])
+        assert re.match(r"                                \| kwargs: {}", result[2])
         assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  TRACE  .*\] Function test took 0:00:00 to execute and returned \"This is a trace function\"", result[3])
 
     def test_debug_func(self, capsys):
@@ -174,8 +174,8 @@ class Test_Logger:
         print(result)
         result = result.split("\n") #type: list[str]
         assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  DEBUG  .*\] Calling test with", result[0])
-        assert re.match(r"                                 \| args: \(\)", result[1])
-        assert re.match(r"                                 \| kwargs: {}", result[2])
+        assert re.match(r"                                \| args: \(\)", result[1])
+        assert re.match(r"                                \| kwargs: {}", result[2])
         assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  DEBUG  .*\] Function test returned \"This is a debug function\"", result[3])
 
     def test_set_level(self, capsys):

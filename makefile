@@ -16,7 +16,7 @@ all: dist/$(WHEEL) dist/$(ARCHIVE)
 
 env:
 	python3.12 -m venv env
-	env/bin/pip install --upgrade pip pytest setuptools wheel build
+	env/bin/pip install --upgrade pytest setuptools wheel build
 
 dist/$(WHEEL): $(SOURCES) env
 	mkdir -p $(TEMP_DIR)
