@@ -21,10 +21,11 @@ from typing import Any, Callable, TypeVar
 
 from .config import Config
 from .custom_types import (COLORS, Callerinfo, Levels, LoggerException,
-                           Message, Module, Target, TerminalTarget)
+                           Message, Module)
 from .utils import (CustomEncoder, colorize, get_caller_info,
                     get_executable_formatted, get_time, replace_newline,
                     split_long_string)
+from .targets import Target, TerminalTarget
 
 T = TypeVar('T')
 
