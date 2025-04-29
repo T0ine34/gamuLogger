@@ -1,4 +1,4 @@
-name: On Release
+name: On Push
 #for every push on any branch
 on:
   push:
