@@ -361,10 +361,9 @@ class Target:
         Get the target instance by its name.
         """
         name = str(name)
-        if Target.exist(name):
-            return Target.__instances[name]
-        else:
+        if not Target.exist(name):
             raise ValueError(f"Target {name} does not exist")
+        return Target.__instances[name]
 
     @staticmethod
     def exist(name : str | TerminalTarget) -> bool:

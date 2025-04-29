@@ -1,3 +1,18 @@
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+
+# ###############################################################################################
+#                                   PYLINT
+# pylint: disable=line-too-long
+# pylint: disable=missing-module-docstring
+# pylint: disable=missing-function-docstring
+# pylint: disable=missing-class-docstring
+# pylint: disable=invalid-name
+# pylint: disable=too-few-public-methods
+# pylint: disable=no-name-in-module
+# pylint: disable=import-error
+# ###############################################################################################
+
 import os
 import re
 import sys
@@ -5,11 +20,12 @@ from enum import Enum
 
 import pytest
 
-FILEPATH = os.path.abspath(__file__)
-
 from gamuLogger.utils import (COLORS, CustomEncoder, colorize,
                               get_executable_formatted, get_time,
                               replace_newline, split_long_string)
+
+FILEPATH = os.path.abspath(__file__)
+
 
 
 def test_get_time_format():

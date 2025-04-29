@@ -1,15 +1,27 @@
-import os
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+
+# ###############################################################################################
+#                                   PYLINT
+# pylint: disable=line-too-long
+# pylint: disable=missing-module-docstring
+# pylint: disable=missing-function-docstring
+# pylint: disable=missing-class-docstring
+# pylint: disable=invalid-name
+# pylint: disable=too-few-public-methods
+# pylint: disable=no-name-in-module
+# pylint: disable=import-error
+# ###############################################################################################
+
 import re
-import sys
 import tempfile
 from time import sleep
 
 import pytest
 
 from gamuLogger.gamu_logger import Levels  # type: ignore
-from gamuLogger.gamu_logger import (Logger, Module, Target, TerminalTarget,
-                                    chrono, debug, debug_func, error, fatal,
-                                    info, message, trace, trace_func, warning)
+from gamuLogger.gamu_logger import (Logger, Module, chrono, debug,
+                                    debug_func, info, message, trace_func)
 
 
 class Test_Logger:
@@ -204,7 +216,7 @@ class Test_Logger:
 
             info("This is a message")
 
-            with open(tmpdirname + "/test.log", "r") as file:
+            with open(tmpdirname + "/test.log", mode="r", encoding="utf-8") as file:
                 result = file.read()
 
 
@@ -217,8 +229,8 @@ class Test_Logger:
         Module.clear()
 
         out = []
-        def customFunction(message):
-            out.append(message)
+        def customFunction(msg : str):
+            out.append(msg)
 
         Logger.add_target(customFunction)
 

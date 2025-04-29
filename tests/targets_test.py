@@ -1,3 +1,18 @@
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+
+# ###############################################################################################
+#                                   PYLINT
+# pylint: disable=line-too-long
+# pylint: disable=missing-module-docstring
+# pylint: disable=missing-function-docstring
+# pylint: disable=missing-class-docstring
+# pylint: disable=invalid-name
+# pylint: disable=too-few-public-methods
+# pylint: disable=no-name-in-module
+# pylint: disable=import-error
+# ###############################################################################################
+
 import pytest
 
 from gamuLogger.targets import TerminalTarget, Target
@@ -91,7 +106,7 @@ class TestTarget:
     def test_new(self, target, name):
 
         # Act
-        target_instance = Target(target, name)
+        Target(target, name)
 
         # Assert
         assert Target.exist(name or str(target))
@@ -113,7 +128,7 @@ class TestTarget:
 
     def test_new_no_name(self):
         # Arrange
-        def target_callable(x):
+        def target_callable(_):
             return None
 
         # Act & Assert

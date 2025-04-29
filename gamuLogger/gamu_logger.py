@@ -108,8 +108,7 @@ class Logger:
     def __log_element_level(self, level : Levels, target : Target) -> str:
         if target.type == Target.Type.TERMINAL:
             return f" [{level.color()}{level}{COLORS.RESET}]"
-        else:
-            return f" [{level}]"
+        return f" [{level}]"
 
     def __log_element_module(self, caller_info : Callerinfo, target : Target) -> str:
         result = ""

@@ -42,8 +42,7 @@ def get_caller_function_name(stack  : Stack|None = None) -> str:
         return caller_name
     if caller_name == parents[-1]:
         return '.'.join(parents)
-    else:
-        return '.'.join(parents) + '.' + caller_name
+    return '.'.join(parents) + '.' + caller_name
 
 def get_caller_info(context : int = 1) -> Callerinfo:
     """
@@ -152,7 +151,8 @@ def get_executable_formatted():
 
 
 def string2seconds(string : str) -> int:
-    """Take a string like '1 hour', '2 minutes', '3 seconds', '21 days', '2 weeks', '1 month', or '3 years' and convert it to seconds.
+    """Take a string like '1 hour', '2 minutes', '3 seconds', '21 days',
+    '2 weeks', '1 month', or '3 years' and convert it to seconds.
     Accept multiple units in the same string, like '1 hour 2 minutes 3 seconds'.
 
     Args:
@@ -224,4 +224,3 @@ def string2bytes(string : str) -> int:
         else:
             raise ValueError(f"Unknown size unit: {unit}")
     return total_bytes
-
