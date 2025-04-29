@@ -1,8 +1,158 @@
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
 
+# ###############################################################################################
+#                                   PYLINT
+# Disable C0301 = Line too long (80 chars by line is not enough)
+# pylint: disable=line-too-long
+# ###############################################################################################
+
+"""
+Targets for the logger.
+"""
+
+import os
 import sys
 import threading
 from enum import Enum
 from typing import Callable, Any
+import re
+import time
+
+from.utils import string2seconds, string2bytes
+
+RE_AGE_CONDITION = re.compile(r"age\s*(?P<operator>>|>=|<|<=)\s*(?P<value>\d+)\s*(?P<unit>(?:hour|minute|second|day|week|month|year)s?)")
+RE_SIZE_CONDITION = re.compile(r"size\s*(?P<operator>>|>=|<|<=)\s*(?P<value>\d+)\s*(?P<unit>(?:KB|MB|GB|TB)s?)")
+RE_NB_FILES_CONDITION = re.compile(r"nb_files\s*(?P<operator>>|>=|<|<=)\s*(?P<value>\d+)")
+
+class WriteToFile: #pylint: disable=R0903
+    """
+    A class that writes to a file based on a schema.
+    See the docstring of Target.from_file_schema for more details.
+    """
+    def __init__(self, folder : str, schema : str, switch_condition : tuple[str], delete_condition : tuple[str]):
+        self.folder = folder
+
+        # create the folder if it does not exist
+        if not os.path.exists(self.folder):
+            os.makedirs(self.folder)
+
+        self.schema = schema
+        self.current_file = ""
+        self.__create_new_file()
+
+        for condition in switch_condition:
+            if not any([RE_AGE_CONDITION.match(condition), RE_SIZE_CONDITION.match(condition)]):
+                raise ValueError(f"Invalid switch condition: {condition}")
+        self.switch_condition = switch_condition
+
+        for condition in delete_condition:
+            if not any([RE_AGE_CONDITION.match(condition), RE_NB_FILES_CONDITION.match(condition)]):
+                raise ValueError(f"Invalid delete condition: {condition}")
+        self.delete_condition = delete_condition
+
+    def __create_new_file(self):
+        """
+        Create a new file based on the schema and the current time.
+        """
+        # get the current time
+        current_time = time.localtime()
+        # create the file name based on the schema
+        file_name = self.schema.replace("${date}", f"{current_time.tm_year}-{current_time.tm_mon:02d}-{current_time.tm_mday:02d}")
+        file_name = file_name.replace("${hour}", f"{current_time.tm_hour:02d}")
+        file_name = file_name.replace("${minute}", f"{current_time.tm_min:02d}")
+        file_name = file_name.replace("${second}", f"{current_time.tm_sec:02d}")
+        file_name = file_name.replace("${pid}", str(os.getpid()))
+
+        # create the full path for the file
+        self.current_file = os.path.join(self.folder, file_name)
+
+    def __is_outdated_age(self, operator : str, value : int, unit : str) -> bool:
+        # get the file creation time
+        file_time = os.path.getctime(self.current_file)
+        # get the current time
+        current_time = time.time()
+        # get the difference in seconds
+        diff = current_time - file_time
+        # convert the value to seconds
+        value = string2seconds(f"{value} {unit}")
+
+        # compare the difference with the value
+        match operator:
+            case '>':
+                if diff > value:
+                    return True
+            case '>=':
+                if diff >= value:
+                    return True
+            case '<':
+                if diff < value:
+                    return True
+            case '<=':
+                if diff <= value:
+                    return True
+            case _:
+                raise ValueError(f"Invalid operator: {operator}")
+        return False
+
+    def __is_outdated_size(self, operator : str, value : int, unit : str) -> bool:
+        # get the file size
+        file_size = os.path.getsize(self.current_file)
+        # convert the value to bytes
+        value = string2bytes(f"{value} {unit}")
+
+        # compare the size with the value
+        match operator:
+            case '>':
+                if file_size > value:
+                    return True
+            case '>=':
+                if file_size >= value:
+                    return True
+            case '<':
+                if file_size < value:
+                    return True
+            case '<=':
+                if file_size <= value:
+                    return True
+            case _:
+                raise ValueError(f"Invalid operator: {operator}")
+        return False
+
+    def __is_outdated(self) -> bool:
+        """
+        Check if the file is outdated based on the switch condition.
+        """
+        for condition in self.switch_condition:
+            if match := RE_AGE_CONDITION.match(condition):
+                operator = match.group('operator')
+                value = int(match.group('value'))
+                unit = match.group('unit')
+                if self.__is_outdated_age(operator, value, unit):
+                    return True
+            elif match := RE_SIZE_CONDITION.match(condition):
+                operator = match.group('operator')
+                value = int(match.group('value'))
+                unit = match.group('unit')
+                if self.__is_outdated_size(operator, value, unit):
+                    return True
+            else:
+                raise ValueError(f"Invalid switch condition: {condition}")
+        return False
+
+    def __call__(self, string : str):
+        """
+        Write the string to the file.
+        If the file is outdated, create a new file.
+        """
+        # check if the file is outdated
+        if self.__is_outdated():
+            self.__create_new_file()
+
+        # write the string to the file
+        with open(self.current_file, 'a', encoding="utf-8") as f:
+            f.write(string)
+
 
 class TerminalTarget(Enum):
     """
@@ -60,7 +210,7 @@ class Target:
         if name is None:
             if isinstance(target, TerminalTarget):
                 name = name if name is not None else str(target)
-            elif hasattr(target, '__name__'):
+            elif callable(target):
                 name = target.__name__
             else:
                 raise ValueError("The target must be a function or a TerminalTarget; use Target.from_file(file) to create a file target")
@@ -80,7 +230,7 @@ class Target:
                     self.target = sys.stderr.write
             self.__type = Target.Type.TERMINAL
             self.__name = name if name is not None else str(target)
-        elif hasattr(target, '__call__'):
+        elif callable(target):
             self.__type = Target.Type.FILE
             self.__name = name if name is not None else target.__name__
             self.target = target
@@ -91,8 +241,8 @@ class Target:
         self.properties : dict[str, Any] = {}
         self.__lock = threading.Lock()
 
-    @staticmethod
-    def from_file(file : str) -> 'Target':
+    @classmethod
+    def from_file(cls, file : str) -> 'Target':
         """
         Create a Target from a file.
         The file will be created if it does not exist.
@@ -102,7 +252,57 @@ class Target:
                 f.write(string)
         with open(file, 'w', encoding="utf-8") as f: # clear the file
             f.write('')
-        return Target(write_to_file, file)
+        return cls(write_to_file, file)
+
+    @classmethod
+    def from_file_schema(cls,
+            folder : str, schema : str = "${date} ${hour}:${minute}.log",
+            switch_condition : tuple[str] = ("age > 1 hour",),
+            delete_condition : tuple[str] = ("nb_files >= 5",)
+        )-> 'Target':
+        """create a Target to write logs in files where the name is based on the schema
+        The schema can contain the following placeholders:
+        - `${date}`: the current date in YYYY-MM-DD format
+        - `${time}`: the current time in HH-MM-SS format
+        - `${datetime}`: the current date and time in YYYY-MM-DD_HH-MM-SS format
+
+        - `${year}`: the current year in YYYY format
+        - `${month}`: the current month in MM format
+        - `${day}`: the current day in DD format
+
+        - `${hour}`: the current hour in HH format
+        - `${minute}`: the current minute in MM format
+        - `${second}`: the current second in SS format
+
+        - `${pid}`: the current process id
+
+        The switch condition can be:
+        - `age > x unit`: the file will be created if it is older than x unit (e.g. `age > 1 hour`)
+        - `size > x unit`: the file will be created if it is larger than x unit (e.g. `size > 1 MB`)
+        If multiple condition are provided, the file will be created if any of them is true. (OR condition)
+        Operators allowed : `>`, `>=`, `<`, `<=`
+        Units allowed : `hour`, `minute`, `second`, `day`, `week`, `month`, `year`, `KB`, `MB`, `GB`, `TB`
+        Support plural form of the unit (e.g. `hours`, `minutes`, `seconds`, `days`, `weeks`, `months`, `years`, `KBs`, `MBs`, `GBs`, `TBs`)
+
+        The delete condition can be:
+        - `age > x unit`: the file will be deleted if it is older than x unit (e.g. `age > 1 hour`)
+        - `nb_files > x`: the file will be deleted if there are more than x files in the folder (e.g. `nb_files > 5`)
+        If multiple condition are provided, the file will be deleted if any of them is true. (OR condition)
+
+        Args:
+            folder (str): folder where the files will be created
+            schema (str): schema for the file name. The default is "${date} ${hour}:${minute}.log".
+            switch_condition (str): condition to switch the file. The default is "age > 1 hour".
+            delete_condition (str): condition to delete the file. The default is "nb_files >= 5".
+            The file will be created in the folder specified in the folder argument.
+
+        Returns:
+            Target: a Target instance that writes to the file specified by the schema
+        """
+
+        write_to_file = WriteToFile(folder, schema, switch_condition, delete_condition)
+
+        return cls(write_to_file, folder)
 
     def __call__(self, string : str):
         with self.__lock: # prevent multiple threads to write at the same time

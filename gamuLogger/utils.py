@@ -149,3 +149,79 @@ def get_executable_formatted():
     if "python" in executable_name.lower():
         return f"{executable_name} {' '.join(sys.argv)}"
     return f"{executable_name}"
+
+
+def string2seconds(string : str) -> int:
+    """Take a string like '1 hour', '2 minutes', '3 seconds', '21 days', '2 weeks', '1 month', or '3 years' and convert it to seconds.
+    Accept multiple units in the same string, like '1 hour 2 minutes 3 seconds'.
+
+    Args:
+        string (str): The string to convert.
+
+    Returns:
+        int: The number of seconds represented by the string.
+    """
+
+    time_units = {
+        'seconds': 1,
+        'minutes': 60,
+        'hours': 3600,
+        'days': 86400,
+        'weeks': 604800,
+        'months': 2592000,  # Approximate, as months vary in length (30 days)
+        'years': 31536000,   # Approximate, as years vary in length (365.25 days)
+    }
+
+    parts = string.split()
+    total_seconds = 0
+
+    for i in range(0, len(parts), 2):
+        value = int(parts[i])
+        unit = parts[i + 1].lower()
+        if unit.endswith('s'):
+            unit = unit[:-1]  # Remove the trailing 's' for plural units
+        if unit in time_units:
+            total_seconds += value * time_units[unit]
+
+    return total_seconds
+
+
+def string2bytes(string : str) -> int:
+    """Take a string like '1 KB', '2 MB', '3 GB', '21 TB' and convert it to bytes.
+    Accept multiple units in the same string, like '1 KB 2 MB 3 GB'.
+
+    Args:
+        string (str): The string to convert.
+
+    Returns:
+        int: The number of bytes represented by the string.
+    """
+
+    size_units = {
+        "B": 1,
+        "KB": 1024,
+        "MB": 1024**2,
+        "GB": 1024**3,
+        "TB": 1024**4,
+        "PB": 1024**5,
+        "BYTES": 1,
+        "KILOBYTES": 1024,
+        "MEGABYTES": 1024**2,
+        "GIGABYTES": 1024**3,
+        "TERABYTES": 1024**4,
+        "PETABYTES": 1024**5,
+    }
+
+    parts = string.split()
+    total_bytes = 0
+    for i in range(0, len(parts), 2):
+        value = int(parts[i])
+        unit = parts[i + 1].upper()
+        if unit.endswith('S'):
+            unit = unit[:-1]  # Remove the trailing 's' for plural units
+        if unit in size_units:
+            total_bytes += value * size_units[unit]
+        else:
+            raise ValueError(f"Unknown size unit: {unit}")
+    return total_bytes
+
