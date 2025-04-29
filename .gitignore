@@ -11,3 +11,5 @@ dist/
 build/
 
 *.egg-info/
+
+test-report.xml

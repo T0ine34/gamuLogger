@@ -36,8 +36,11 @@ install: dist/$(WHEEL) env
 	env/bin/python -m pip install --force-reinstall dist/$(WHEEL)
 
 
-tests: $(TESTS) install env
-	env/bin/python -m pytest tests
+test-report.xml: $(TESTS) env
+	env/bin/python -m pytest --junitxml=test-report.xml tests
+
+
+tests: test-report.xml
 
 clean:
 	rm -rf build dist gamuLogger.egg-info

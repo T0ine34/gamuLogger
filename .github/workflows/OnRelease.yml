@@ -5,9 +5,34 @@ on:
 
 
 jobs:
+  tests:
+    runs-on: ubuntu-latest
 
-#region BUILD
-  build-python:
+    steps:
+
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # Fetch all history for all tags
+
+    - name: install make
+      run: sudo apt-get install -y make
+
+    - name: setup Python 3.12
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.12
+
+    - name: build
+      run: make tests VERSION=${{ github.event.release.tag_name }}
+
+    - name: publish test report
+      if: success() || failure()
+      uses: mikepenz/action-junit-report@v5
+      with:
+        report_paths: 'test-report.xml'
+
+
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -36,30 +61,6 @@ jobs:
         files: "dist/*"
         repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-#endregion
-
-#region PYTHON_PUBLISH
-  # publish-test-pypi:
-  #   name: Publish to Test PyPI
-  #   needs: build-python
-  #   runs-on: ubuntu-latest
-  #   environment:
-  #     name: testpypi
-  #     url: https://test.pypi.org/p/gamuLogger
-  #   permissions:
-  #     id-token: write
-
-  #   steps:
-  #     - name: Download artifact
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         name: python-package-distributions
-  #         path: dist/
-  #     - name: Publish to Test PyPI
-  #       uses: pypa/gh-action-pypi-publish@release/v1
-  #       with:
-  #         repository-url: https://test.pypi.org/legacy/
-
   publish-pypi:
     name: Publish to PyPI
     needs: build-python
@@ -79,4 +80,3 @@ jobs:
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
 
-#endregion
