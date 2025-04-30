@@ -52,8 +52,8 @@ class WriteToFile: #pylint: disable=R0903
         current_time = time.localtime()
         # create the file name based on the schema
         file_name = self.schema.replace("${date}", f"{current_time.tm_year}-{current_time.tm_mon:02d}-{current_time.tm_mday:02d}")
-        file_name = file_name.replace("${time}", f"{current_time.tm_hour:02d}:{current_time.tm_min:02d}:{current_time.tm_sec:02d}")
-        file_name = file_name.replace("${datetime}", f"{current_time.tm_year}-{current_time.tm_mon:02d}-{current_time.tm_mday:02d}_{current_time.tm_hour:02d}:{current_time.tm_min:02d}:{current_time.tm_sec:02d}")
+        file_name = file_name.replace("${time}", f"{current_time.tm_hour:02d}-{current_time.tm_min:02d}-{current_time.tm_sec:02d}")
+        file_name = file_name.replace("${datetime}", f"{current_time.tm_year}-{current_time.tm_mon:02d}-{current_time.tm_mday:02d}_{current_time.tm_hour:02d}-{current_time.tm_min:02d}-{current_time.tm_sec:02d}")
 
         file_name = file_name.replace("${year}", str(current_time.tm_year))
         file_name = file_name.replace("${month}", f"{current_time.tm_mon:02d}")
@@ -242,7 +242,7 @@ class Target:
 
     @classmethod
     def from_file_schema(cls,
-            folder : str, schema : str = "${date}_${hour}:${minute}.log",
+            folder : str, schema : str = "${date}_${hour}-${minute}.log",
             switch_condition : tuple[str] = ("age > 1 hour",),
             delete_condition : tuple[str] = ("nb_files >= 5",)
         )-> 'Target':
@@ -280,7 +280,7 @@ class Target:
 
         Args:
             folder (str): folder where the files will be created
-            schema (str): schema for the file name. The default is "${date}_${hour}:${minute}.log".
+            schema (str): schema for the file name. The default is "${date}_${hour}-${minute}.log".
             switch_condition (str): condition to switch the file. The default is "age > 1 hour".
             delete_condition (str): condition to delete the file. The default is "nb_files > 5".
 
