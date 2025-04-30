@@ -124,7 +124,7 @@ def config_argparse(parser : argparse.ArgumentParser, /, allow_other_targets : b
             metavar="FILE:LEVEL",
             help="Log to a file with a specific level (default: info). "
                 "Format: FILE:LEVEL, where LEVEL is one of: "
-                f"{', '.join([level.name for level in Levels])}. Cab be ommited to use the default level."
+                f"{', '.join([level.name for level in Levels])}. Can be ommited to use the default level."
                 "You can specify multiple files.",
         )
 
@@ -135,7 +135,7 @@ def config_argparse(parser : argparse.ArgumentParser, /, allow_other_targets : b
             default=[],
             metavar="MODULE:LEVEL",
             help="Set the logging level for a specific module. "
-                "If the name of the module doens't exist, this do nothing. "
+                "If the name of the module doesn't exist, this do nothing. "
                 "Format: MODULE:LEVEL, where LEVEL is one of: "
                 f"{', '.join([level.name for level in Levels])}.",
         )
