@@ -3,7 +3,7 @@ import re
 from typing import Any, Callable
 
 from .regex import RE_AGE_CONDITION, RE_NB_FILES_CONDITION, RE_SIZE_CONDITION
-from .utils import string2seconds
+from .utils import string2seconds, string2bytes
 
 
 class Condition(ABC):
@@ -124,7 +124,7 @@ class SizeCondition(Condition):
         (`Bs`, `KBs`, `MBs`, `GBs`, `TBs`, `PBs`, `EBs`, `ZBs`, `YBs`)
         """
 
-        self.__size_in_bytes = string2seconds(f"{value} {unit}")
+        self.__size_in_bytes = string2bytes(f"{value} {unit}")
         self.__operator = operator
 
     @classmethod
