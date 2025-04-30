@@ -25,8 +25,8 @@ import pytest
 
 from gamuLogger.utils import (COLORS, CustomEncoder, colorize,
                               get_executable_formatted, get_time,
-                              replace_newline, split_long_string,
-                              string2seconds, string2bytes)
+                              replace_newline, schema2regex, split_long_string,
+                              string2bytes, string2seconds)
 
 FILEPATH = os.path.abspath(__file__)
 
@@ -393,3 +393,39 @@ class TestString2Bytes:
 
         # Assert
         assert actual_output == expected_output
+
+
+class TestSchema2Regex:
+    @pytest.mark.parametrize(
+        "schema, test_string, expected_match",
+        [
+            ("${date}", "2024-01-01", True),  # Date
+            ("${time}", "10:30:00", True),  # Time
+            ("${datetime}", "2024-01-01_10:30:00", True),  # Datetime
+            ("${year}", "2024", True),  # Year
+            ("${month}", "01", True),  # Month
+            ("${day}", "01", True),  # Day
+            ("${hour}", "10", True),  # Hour
+            ("${minute}", "30", True),  # Minute
+            ("${second}", "00", True),  # Second
+            ("${pid}", str(os.getpid()), True), # PID
+            ("test_${date}_${time}", "test_2024-01-01_10:30:00", True), # Combined
+            ("test", "test", True), # No placeholders
+            ("${date}", "invalid_date", False),  # Invalid date
+            ("${time}", "invalid_time", False),  # Invalid time
+            ("${datetime}", "invalid_datetime", False),  # Invalid datetime
+            ("test_${date}_${time}", "test_invalid_date_10:30:00", False), # Combined with invalid date
+            ("test_${date}_${time}", "test_2024-01-01_invalid_time", False), # Combined with invalid time
+            ("${unknown}", "anything", False), # Unknown placeholder, treated literally
+        ],
+
+        ids=["date", "time", "datetime", "year", "month", "day", "hour", "minute", "second", "pid", "combined", "no_placeholders", "invalid_date", "invalid_time", "invalid_datetime", "combined_invalid_date", "combined_invalid_time", "unknown_placeholder"]
+    )
+    def test_schema2regex(self, schema, test_string, expected_match):
+
+        # Act
+        pattern = schema2regex(schema)
+        match = pattern.fullmatch(test_string)
+
+        # Assert
+        assert bool(match) == expected_match
