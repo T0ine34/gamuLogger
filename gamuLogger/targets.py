@@ -14,11 +14,13 @@ Targets for the logger.
 import os
 import sys
 import threading
-from enum import Enum
-from typing import Callable, Any
 import time
+from enum import Enum
+from typing import Any, Callable
 
-from .condition import condition_factory, AgeCondition, SizeCondition, NbFilesCondition
+from .condition import (AgeCondition, NbFilesCondition, SizeCondition,
+                        condition_factory)
+
 from.utils import schema2regex
 
 
@@ -175,6 +177,7 @@ class Target:
     A class that represents a target for the logger.
     """
     __instances : dict[str, 'Target'] = {}
+    __lock = threading.Lock()
 
     class Type(Enum):
         """
@@ -200,10 +203,11 @@ class Target:
                 name = target.__name__
             else:
                 raise ValueError("The target must be a function or a TerminalTarget; use Target.from_file(file) to create a file target")
-        if name in cls.__instances:
-            return cls.__instances[name]
-        instance = super().__new__(cls)
-        cls.__instances[name] = instance
+        with cls.__lock: # prevent multiple threads to create the same target
+            if name in cls.__instances:
+                return cls.__instances[name]
+            instance = super().__new__(cls)
+            cls.__instances[name] = instance
         return instance
 
     def __init__(self, target : Callable[[str], None] | TerminalTarget, name : str|None = None):
