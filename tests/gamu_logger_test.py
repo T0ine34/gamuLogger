@@ -29,7 +29,6 @@ from gamuLogger.gamu_logger import (Levels, Logger, Module, chrono, debug,
 
 class Test_Logger:
 
-
     @pytest.mark.parametrize(
         "level, expected",
         [
@@ -59,7 +58,6 @@ class Test_Logger:
         result = captured.out
         print(result)
         assert re.match(expected, result)
-
 
     def test_message(self, capsys):
         Logger.reset()
@@ -208,7 +206,6 @@ class Test_Logger:
         result = captured.out
         print(result)
         assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  DEBUG  .*\] This is a debug message that should be displayed", result)
-
 
     def test_fileTarget(self):
         Logger.reset()
