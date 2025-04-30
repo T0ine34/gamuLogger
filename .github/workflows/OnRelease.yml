@@ -64,7 +64,7 @@ jobs:
 
   publish-pypi:
     name: Publish to PyPI
-    needs: build-python
+    needs: [build, tests]
     runs-on: ubuntu-latest
     environment:
       name: pypi
@@ -80,4 +80,3 @@ jobs:
           path: dist/
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
-
