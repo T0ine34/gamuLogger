@@ -71,45 +71,33 @@ class COLORS(Enum):
 class Levels(Enum):
     """
     ## list of Levels:
-    - TRACE:   this level is used to print very detailed information, it may contain sensitive information
+    - TRACE:        this level is used to print very detailed information, it may contain sensitive information
     - DEBUG:        this level is used to print debug information, it may contain sensitive information
     - INFO:         this level is used to print information about the normal execution of the program
     - WARNING:      this level is used to print warnings about the execution of the program (non-blocking, but may lead to errors)
     - ERROR:        this level is used to print errors that may lead to the termination of the program
-    - FATAL:     this level is used to print fatal errors that lead to the termination of the program, typically used in largest except block
+    - FATAL:        this level is used to print fatal errors that lead to the termination of the program, typically used in largest except block
+    - NONE:         this level is used to disable all logging, it is not a valid level for string representation or color
     """
 
-    TRACE = 0       # this level is used to print very detailed information, it may contain sensitive information
-    DEBUG = 1       # this level is used to print debug information, it may contain sensitive information
-    INFO = 2        # this level is used to print information about the normal execution of the program
-    WARNING = 3     # this level is used to print warnings about the execution of the program (non-blocking, but may lead to errors)
-    ERROR = 4       # this level is used to print errors that may lead to the termination of the program
-    FATAL = 5       # this level is used to print fatal errors that lead to the termination of the program, typically used in largest except block
-    NONE = 6        # this level is used to disable all logging
+    TRACE = 0
+    DEBUG = 1
+    INFO = 2
+    WARNING = 3
+    ERROR = 4
+    FATAL = 5
+    NONE = 6
 
-    @staticmethod
-    def from_string(level : str) -> 'Levels': #pylint: disable=R0911
+    @classmethod
+    def from_string(cls, level : str) -> 'Levels':
         """
         Convert a string to a Levels enum.
         The string can be any case (lower, upper, mixed).
         """
-        match level.lower():
-            case 'trace':
-                return Levels.TRACE
-            case 'debug':
-                return Levels.DEBUG
-            case 'info':
-                return Levels.INFO
-            case 'warning':
-                return Levels.WARNING
-            case 'error':
-                return Levels.ERROR
-            case 'fatal':
-                return Levels.FATAL
-            case 'none':
-                return Levels.NONE
-            case _:
-                return Levels.INFO
+        level = level.upper()
+        if level in cls.__members__:
+            return cls[level]
+        return cls.INFO
 
     def __str__(self) -> str:
         """
@@ -164,6 +152,14 @@ class Levels(Enum):
             case Levels.NONE:
                 raise ValueError("NONE level is not a valid level for color")
 
+    @staticmethod
+    def higher(level1 : 'Levels', level2 : 'Levels') -> 'Levels':
+        """
+        Return the highest level between two levels.
+        """
+        if level1.value > level2.value:
+            return level1
+        return level2
 
 class SupportsStr(Protocol): #pylint: disable=R0903
     """

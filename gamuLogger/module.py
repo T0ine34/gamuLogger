@@ -11,12 +11,15 @@
 Module class for the logger system.
 """
 
+from .custom_types import Levels
+
 class Module:
     """
     A class that represents a module in the logger system.
     It is used to keep track of the modules that are being logged.
     """
     __instances : dict[tuple[str|None, str|None], 'Module'] = {}
+    __levels : dict[str, Levels] = {}
     def __init__(self,
                  name : str,
                  parent : 'Module|None' = None,
@@ -46,8 +49,8 @@ class Module:
             return [self.name]
         return self.parent.get_complete_path() + [self.name]
 
-    @staticmethod
-    def get(filename : str, function : str) -> 'Module':
+    @classmethod
+    def get(cls, filename : str, function : str) -> 'Module':
         """
         Get the module instance by its filename and function name.
         If the function is a.b.c.d, we check if a.b.c.d, a.b.c, a.b, a are in the instances
@@ -55,14 +58,14 @@ class Module:
         functions = function.split('.')
         for i in range(len(functions), 0, -1):
             # if the function is a.b.c.d, we check if a.b.c.d, a.b.c, a.b, a are in the instances
-            if (filename, '.'.join(functions[:i])) in Module.__instances:
-                return Module.__instances[(filename, '.'.join(functions[:i]))]
-        if (filename, '<module>') in Module.__instances:
-            return Module.__instances[(filename, '<module>')]
+            if (filename, '.'.join(functions[:i])) in cls.__instances:
+                return cls.__instances[(filename, '.'.join(functions[:i]))]
+        if (filename, '<module>') in cls.__instances:
+            return cls.__instances[(filename, '<module>')]
         raise ValueError(f"No module found for file {filename} and function {function}")
 
-    @staticmethod
-    def exist(filename : str, function : str) -> bool:
+    @classmethod
+    def exist(cls, filename : str, function : str) -> bool:
         """
         Check if the module instance exists by its filename and function name.
         If the function is a.b.c.d, we check if a.b.c.d, a.b.c, a.b, a are in the instances
@@ -70,97 +73,115 @@ class Module:
         functions = function.split('.')
         for i in range(len(functions), 0, -1):
             # if the function is a.b.c.d, we check if a.b.c.d, a.b.c, a.b, a are in the instances
-            if (filename, '.'.join(functions[:i])) in Module.__instances:
+            if (filename, '.'.join(functions[:i])) in cls.__instances:
                 return True
-        if (filename, '<module>') in Module.__instances:
+        if (filename, '<module>') in cls.__instances:
             return True
         return False
 
-    @staticmethod
-    def exist_exact(filename : str, function : str) -> bool:
+    @classmethod
+    def exist_exact(cls, filename : str, function : str) -> bool:
         """
         Check if the module instance exists by its filename and function name.
         """
-        return (filename, function) in Module.__instances
+        return (filename, function) in cls.__instances
 
 
-    @staticmethod
-    def delete(filename : str, function : str):
+    @classmethod
+    def delete(cls, filename : str, function : str):
         """
         Delete the module instance by its filename and function name.
         """
-        if Module.exist_exact(filename, function):
+        if cls.exist_exact(filename, function):
             # del Module.__instances[(filename, function)]
-            Module.__instances.pop((filename, function), None)
+            cls.__instances.pop((filename, function), None)
         else:
             raise ValueError(f"No module found for file {filename} and function {function}")
 
-    @staticmethod
-    def get_by_name(name : str) -> 'Module':
+    @classmethod
+    def get_by_name(cls, name : str) -> 'Module':
         """
         Get the module instance by its name.
         """
-        for module in Module.__instances.values():
+        for module in cls.__instances.values():
             if module.get_complete_name() == name:
                 return module
         raise ValueError(f"No module found for name {name}")
 
-    @staticmethod
-    def exist_by_name(name : str) -> bool:
+    @classmethod
+    def exist_by_name(cls, name : str) -> bool:
         """
         Check if the module instance exists by its name.
         """
         return any(
             module.get_complete_name() == name
-            for module in Module.__instances.values()
+            for module in cls.__instances.values()
         )
 
-    @staticmethod
-    def delete_by_name(name : str):
+    @classmethod
+    def delete_by_name(cls, name : str):
         """
         Delete the module instance by its name.
         """
-        if not Module.exist_by_name(name):
+        if not cls.exist_by_name(name):
             raise ValueError(f"No module found for name {name}")
-        module = Module.get_by_name(name)
-        del Module.__instances[(module.file, module.function)]
+        module = cls.get_by_name(name)
+        del cls.__instances[(module.file, module.function)]
 
 
-    @staticmethod
-    def clear():
+    @classmethod
+    def clear(cls):
         """
         Clear all the module instances.
         """
-        Module.__instances = {}
+        cls.__instances = {}
 
-    @staticmethod
-    def new(name : str, file : str|None = None, function : str|None = None) -> 'Module':
+    @classmethod
+    def new(cls, name : str, file : str|None = None, function : str|None = None) -> 'Module':
         """
         Create a new module instance by its name, file and function.
         If the module already exists, it will return the existing instance.
         If the module is a.b.c.d, we check if a.b.c.d, a.b.c, a.b, a are in the instances
         and create the parent modules if they don't exist.
         """
-        if Module.exist_by_name(name):
-            existing = Module.get_by_name(name)
+        if cls.exist_by_name(name):
+            existing = cls.get_by_name(name)
             if file == existing.file and function == existing.function:
                 return existing
             raise ValueError(f"Module {name} already exists with file {existing.file} and function {existing.function}")
 
         if '.' in name:
             parent_name, module_name = name.rsplit('.', 1)
-            if not Module.exist_by_name(parent_name):
+            if not cls.exist_by_name(parent_name):
                 #create the parent module
-                parent = Module.new(parent_name, file, function)
+                parent = cls.new(parent_name, file, function)
             else:
                 #get the parent module
-                parent = Module.get_by_name(parent_name)
-            return Module(module_name, parent, file, function)
-        return Module(name, None, file, function)
+                parent = cls.get_by_name(parent_name)
+            return cls(module_name, parent, file, function)
+        return cls(name, None, file, function)
 
-    @staticmethod
-    def all() -> dict[tuple[str|None, str|None], 'Module']:
+    @classmethod
+    def all(cls) -> dict[tuple[str|None, str|None], 'Module']:
         """
         Get all the module instances.
         """
-        return Module.__instances
+        return cls.__instances
+
+
+    @classmethod
+    def set_level(cls, name : str, level : Levels):
+        """
+        Set the level of the module instance by its name.
+        """
+        cls.__levels[name] = level
+
+    @classmethod
+    def get_level(cls, name : str, default : Levels) -> Levels:
+        """
+        Get the level of the module instance by its name.
+        """
+        if name in cls.__levels:
+            return cls.__levels[name]
+        return default
+

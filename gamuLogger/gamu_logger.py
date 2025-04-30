@@ -60,7 +60,13 @@ class Logger:
             self.__print_in_target(level, msg, caller_info, target)
 
     def __print_in_target(self, level : Levels, msg : Message, caller_info : Callerinfo, target : Target):
-        if not target["level"] <= level:
+        if Module.exist(*caller_info):
+            name = Module.get(*caller_info).get_complete_name()
+            module_level = Module.get_level(name, target['level'])
+        else:
+            module_level = target["level"]
+
+        if not Levels.higher(module_level, target["level"]) <= level:
             return
         result = ""
 
@@ -258,9 +264,22 @@ class Logger:
         target["level"] = level
 
     @staticmethod
-    def set_module(name : str):
+    def set_module_level(name : str, level : Levels):
+        """
+        Set the level of a module. This will change the level of the module and filter the messages that will be printed.
+        Args:
+            name (str): The name of the module. It can be a callable, a string or a Module object.
+            level (Levels): The level of the module. It can be one of the Levels enum values.
+        """
+        Module.set_level(name, level)
+
+    @staticmethod
+    def set_module(name : str|None):
         """
         Set the module name for the logger. This will be used to identify the module that generated the log message.
+        All logging methods will use the module name of the most recent set module, in the order of scope.
+        It mean that a module can be set for a whole file, a class, a function or a method.
+
         Args:
             name (str): The name of the module. If None, the module will be deleted.
         """

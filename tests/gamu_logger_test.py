@@ -22,9 +22,9 @@ from time import sleep
 
 import pytest
 
-from gamuLogger.gamu_logger import Levels  # type: ignore
-from gamuLogger.gamu_logger import (Logger, Module, chrono, debug,
-                                    debug_func, info, message, trace_func)
+from gamuLogger.gamu_logger import (Levels, Logger, Module, chrono, debug,
+                                    debug_func, info, message, trace_func,
+                                    warning, error)
 
 
 class Test_Logger:
@@ -244,3 +244,40 @@ class Test_Logger:
         print(result)
 
         assert re.match(r"\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\] \[  INFO   \] This is a message", result)
+
+    def test_module_specific_levels(self, capsys):
+        Logger.reset()
+        Module.clear()
+
+        # Set up modules with specific levels
+        Logger.set_level("stdout", Levels.DEBUG)            # Default level for stdout
+        Logger.set_module_level("module1", Levels.DEBUG)    # Set DEBUG level for module1
+        Logger.set_module_level("module2", Levels.WARNING)  # Set WARNING level for module2
+
+        # Log messages from different modules
+        Logger.set_module("module1")
+        debug("This is a debug message from module1")       # Should be displayed
+        info("This is an info message from module1")        # Should be displayed
+        warning("This is a warning message from module1")   # Should be displayed
+        error("This is an error message from module1")      # Should be displayed
+
+        Logger.set_module("module2")
+        debug("This is a debug message from module2")       # Should NOT be displayed
+        info("This is an info message from module2")        # Should NOT be displayed
+        warning("This is a warning message from module2")   # Should be displayed
+        error("This is an error message from module2")      # Should be displayed
+
+        # Capture the output
+        captured = capsys.readouterr()
+        result = captured.out
+        print(result)
+
+        # Assertions
+        assert re.search(r"This is a debug message from module1", result)
+        assert re.search(r"This is an info message from module1", result)
+        assert re.search(r"This is a warning message from module1", result)
+        assert re.search(r"This is an error message from module1", result)
+        assert not re.search(r"This is a debug message from module2", result)
+        assert not re.search(r"This is an info message from module2", result)
+        assert re.search(r"This is a warning message from module2", result)
+        assert re.search(r"This is an error message from module2", result)
