@@ -36,7 +36,7 @@ install: dist/$(WHEEL) env
 	env/bin/python -m pip install --force-reinstall dist/$(WHEEL)
 
 
-test-report.xml: $(TESTS) env
+test-report.xml: $(SOURCES) $(TESTS) env
 	env/bin/python -m pytest --junitxml=test-report.xml tests
 
 
