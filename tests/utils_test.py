@@ -408,7 +408,7 @@ class TestSchema2Regex:
             ("${hour}", "10", True),  # Hour
             ("${minute}", "30", True),  # Minute
             ("${second}", "00", True),  # Second
-            ("${pid}", str(os.getpid()), True), # PID
+            ("${pid}", "12345", True), # PID (mocked)
             ("test_${date}_${time}", "test_2024-01-01_10:30:00", True), # Combined
             ("test", "test", True), # No placeholders
             ("${date}", "invalid_date", False),  # Invalid date
@@ -421,7 +421,9 @@ class TestSchema2Regex:
 
         ids=["date", "time", "datetime", "year", "month", "day", "hour", "minute", "second", "pid", "combined", "no_placeholders", "invalid_date", "invalid_time", "invalid_datetime", "combined_invalid_date", "combined_invalid_time", "unknown_placeholder"]
     )
-    def test_schema2regex(self, schema, test_string, expected_match):
+    def test_schema2regex(self, monkeypatch, schema, test_string, expected_match):
+        # Arrange
+        monkeypatch.setattr(os, "getpid", lambda: 12345)
 
         # Act
         pattern = schema2regex(schema)

@@ -19,6 +19,7 @@
 import re
 import tempfile
 from time import sleep
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -224,11 +225,11 @@ class Test_Logger:
         Module.clear()
         Module.set_default_level(Levels.TRACE)
         with tempfile.TemporaryDirectory() as tmpdirname:
-            Logger.add_target(tmpdirname + "/test.log")
+            Logger.add_target(f"{tmpdirname}/test.log")
 
             info("This is a message")
 
-            with open(tmpdirname + "/test.log", mode="r", encoding="utf-8") as file:
+            with open(f"{tmpdirname}/test.log", mode="r", encoding="utf-8") as file:
                 result = file.read()
 
 
@@ -240,7 +241,6 @@ class Test_Logger:
         Logger.reset()
         Module.clear()
         Module.set_default_level(Levels.TRACE)
-
         out = []
         def customFunction(msg : str):
             out.append(msg)
@@ -292,3 +292,50 @@ class Test_Logger:
         assert not re.search(r"This is an info message from module2", result)
         assert re.search(r"This is a warning message from module2", result)
         assert re.search(r"This is an error message from module2", result)
+
+    @pytest.mark.parametrize(
+        "name, level",
+        [
+            ("module1", Levels.DEBUG),  # String name
+            ("module2", Levels.WARNING), # String name, different level
+            ("a.b.c", Levels.TRACE), # Dotted module name
+        ],
+        ids=["string_name_debug", "string_name_warning", "dotted_module_name"]
+    )
+    def test_set_module_level(self, name, level, monkeypatch):
+        # Arrange
+        get_instance_mock = MagicMock()
+        monkeypatch.setattr(Logger, "get_instance", get_instance_mock)
+        set_level_mock = MagicMock()
+        monkeypatch.setattr(Module, "set_level", set_level_mock)
+
+
+        # Act
+        Logger.set_module_level(name, level)
+
+        # Assert
+        get_instance_mock.assert_called_once()
+        set_level_mock.assert_called_once_with(name, level)
+
+    @pytest.mark.parametrize(
+        "level",
+        [
+            (Levels.DEBUG,),  # DEBUG level
+            (Levels.WARNING,),  # WARNING level
+            (Levels.INFO,), # INFO level
+        ],
+        ids=["debug_level", "warning_level", "info_level"]
+    )
+    def test_set_default_module_level(self, level, monkeypatch):
+        # Arrange
+        get_instance_mock = MagicMock()
+        monkeypatch.setattr(Logger, "get_instance", get_instance_mock)
+        set_default_level_mock = MagicMock()
+        monkeypatch.setattr(Module, "set_default_level", set_default_level_mock)
+
+        # Act
+        Logger.set_default_module_level(level)
+
+        # Assert
+        get_instance_mock.assert_called_once()
+        set_default_level_mock.assert_called_once_with(level)
