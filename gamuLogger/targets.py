@@ -200,7 +200,7 @@ class Target:
                 name = target.__name__
             else:
                 raise ValueError("The target must be a function or a TerminalTarget; use Target.from_file(file) to create a file target")
-        if target in cls.__instances:
+        if name in cls.__instances:
             return cls.__instances[name]
         instance = super().__new__(cls)
         cls.__instances[name] = instance
