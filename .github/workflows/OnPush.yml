@@ -1,4 +1,4 @@
-name: On Release
+name: On Push
 #for every push on any branch
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - "*"
 
 jobs:
-  build-python:
+  tests:
     runs-on: ubuntu-latest
 
     steps:
@@ -36,11 +36,12 @@ jobs:
 
     - name: build
       if: steps.check_branch.outputs.match == 'true'
-      run: make VERSION=${{ github.ref_name }}
+      run: make tests VERSION=${{ github.ref_name }}
 
-    - name: Store artifact
-      if: steps.check_branch.outputs.match == 'true'
-      uses: actions/upload-artifact@v4
+    - name: publish test report
+      if: steps.check_branch.outputs.match == 'true' && (success() || failure())
+      uses: mikepenz/action-junit-report@v5
       with:
-        path: dist/*
-        name: dist
+        report_paths: 'test-report.xml'
+        include_passed: true
+

@@ -1,7 +1,15 @@
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+
+# ###############################################################################################
+#                                   PYLINT
+# Disable C0301 = Line too long (80 chars by line is not enough)
+# pylint: disable=line-too-long
+# ###############################################################################################
+
 """
 Utility functions for the logger module
 """
-
 
 import inspect
 import os
@@ -9,8 +17,10 @@ import sys
 from datetime import datetime
 from json import JSONEncoder
 from typing import Any
+import re
 
 from .custom_types import COLORS, Callerinfo, Stack
+from .regex import RE_YEAR, RE_MONTH, RE_DAY, RE_HOUR, RE_MINUTE, RE_SECOND, RE_PID, RE_DATE, RE_TIME, RE_DATETIME
 
 
 def get_caller_file_path(stack : Stack|None = None) -> str:
@@ -22,6 +32,7 @@ def get_caller_file_path(stack : Stack|None = None) -> str:
     if len(stack) < 3:
         return os.path.abspath(stack[-1].filename)
     return os.path.abspath(stack[2].filename)
+
 
 def get_caller_function_name(stack  : Stack|None = None) -> str:
     """
@@ -42,8 +53,8 @@ def get_caller_function_name(stack  : Stack|None = None) -> str:
         return caller_name
     if caller_name == parents[-1]:
         return '.'.join(parents)
-    else:
-        return '.'.join(parents) + '.' + caller_name
+    return '.'.join(parents) + '.' + caller_name
+
 
 def get_caller_info(context : int = 1) -> Callerinfo:
     """
@@ -51,6 +62,7 @@ def get_caller_info(context : int = 1) -> Callerinfo:
     """
     stack = inspect.stack(context)
     return get_caller_file_path(stack), get_caller_function_name(stack)
+
 
 def get_time():
     """
@@ -87,6 +99,7 @@ def split_long_string(string: str, length: int = 100) -> str:
         if current_line:
             result.append(' '.join(current_line))
     return '\n'.join(result)
+
 
 class CustomEncoder(JSONEncoder):
     """
@@ -132,6 +145,7 @@ def get_all_parents(filepath : str, lineno : int) -> list[str]:
 
     return parents
 
+
 def colorize(color : COLORS, string : str):
     """
     Colorize a string with the given color
@@ -139,10 +153,139 @@ def colorize(color : COLORS, string : str):
     return f"{color}{string}{COLORS.RESET}"
 
 
-def get_executable_formatted() -> str:
+def get_executable_formatted():
     """
-    Returns the name of the executable and the script name
+    Returns the formatted string of the current executable and its arguments.
+    If the executable is a Python interpreter, it includes the script name.
+    Otherwise, it only includes the executable name.
     """
-    executable = sys.executable.rsplit(os.sep, maxsplit=1)[-1]
-    program_name = sys.argv[0] if len(sys.argv) >= 1 else ""
-    return f"{executable} {program_name}" if 'python' in executable else executable
+    executable_name = os.path.basename(sys.executable)
+    if "python" in executable_name.lower():
+        return f"{executable_name} {' '.join(sys.argv)}"
+    return f"{executable_name}"
+
+
+def string2seconds(string : str) -> int:
+    """Take a string like '1 hour', '2 minutes', '3 seconds', '21 days',
+    '2 weeks', '1 month', or '3 years' and convert it to seconds.
+    Accept multiple units in the same string, like '1 hour 2 minutes 3 seconds'.
+
+    Args:
+        string (str): The string to convert.
+
+    Returns:
+        int: The number of seconds represented by the string.
+    """
+
+    time_units = {
+        'second': 1,
+        'minute': 60,
+        'hour': 3600,
+        'day': 86400,
+        'week': 604800,
+        'month': 2592000,  # Approximate, as months vary in length (30 days)
+        'year': 31536000,   # Approximate, as years vary in length (365.25 days)
+    }
+
+    parts = string.split()
+    total_seconds = 0
+
+    for i in range(0, len(parts), 2):
+        if not parts[i].isdigit():
+            raise ValueError(f"Invalid value: {parts[i]}")
+        if i + 1 >= len(parts):
+            raise ValueError("Missing unit after value")
+        if not parts[i + 1] in time_units and not parts[i + 1][:-1] in time_units:
+            raise ValueError(f"Unknown time unit: {parts[i + 1]}")
+        value = int(parts[i])
+        unit = parts[i + 1].lower()
+        if unit.endswith('s'):
+            unit = unit[:-1]  # Remove the trailing 's' for plural units
+        if unit in time_units:
+            total_seconds += value * time_units[unit]
+
+    return total_seconds
+
+def string2bytes(string : str) -> int:
+    """Take a string like '1 KB', '2 MB', '3 GB', '21 TB' and convert it to bytes.
+    Accept multiple units in the same string, like '1 KB 2 MB 3 GB'.
+
+    Args:
+        string (str): The string to convert.
+
+    Returns:
+        int: The number of bytes represented by the string.
+    """
+
+    size_units = {
+        "B": 1,
+        "KB": 1024,
+        "MB": 1024**2,
+        "GB": 1024**3,
+        "TB": 1024**4,
+        "PB": 1024**5,
+        "BYTE": 1,
+        "KILOBYTE": 1024,
+        "MEGABYTE": 1024**2,
+        "GIGABYTE": 1024**3,
+        "TERABYTE": 1024**4,
+        "PETABYTE": 1024**5,
+    }
+
+    parts = string.upper().split()
+    total_bytes = 0
+    for i in range(0, len(parts), 2):
+        if not parts[i].isdigit():
+            raise ValueError(f"Invalid value: {parts[i]}")
+        if i + 1 >= len(parts):
+            raise ValueError("Missing unit after value")
+        if not parts[i + 1] in size_units and not parts[i + 1][:-1] in size_units:
+            raise ValueError(f"Unknown size unit: {parts[i + 1]}")
+        value = int(parts[i])
+        unit = parts[i + 1].upper()
+        if unit.endswith('S'):
+            unit = unit[:-1]  # Remove the trailing 's' for plural units
+        if unit in size_units:
+            total_bytes += value * size_units[unit]
+        else:
+            raise ValueError(f"Unknown size unit: {unit}")
+    return total_bytes
+
+def schema2regex(schema : str) -> re.Pattern[str]:
+    """
+    Convert a schema string to a regex pattern.
+
+    The schema can contain the following placeholders:
+        - `${date}`: the current date in YYYY-MM-DD format
+        - `${time}`: the current time in HH-MM-SS format
+        - `${datetime}`: the current date and time in YYYY-MM-DD_HH-MM-SS format
+
+        - `${year}`: the current year in YYYY format
+        - `${month}`: the current month in MM format
+        - `${day}`: the current day in DD format
+
+        - `${hour}`: the current hour in HH format
+        - `${minute}`: the current minute in MM format
+        - `${second}`: the current second in SS format
+
+        - `${pid}`: the current process id
+    """
+    # Define the regex patterns for each placeholder
+    patterns = {
+        "${date}": RE_DATE,
+        "${time}": RE_TIME,
+        "${datetime}": RE_DATETIME,
+        "${year}": RE_YEAR,
+        "${month}": RE_MONTH,
+        "${day}": RE_DAY,
+        "${hour}": RE_HOUR,
+        "${minute}": RE_MINUTE,
+        "${second}": RE_SECOND,
+        "${pid}": RE_PID,
+    }
+
+    # Replace the placeholders with their regex patterns
+    for placeholder, pattern in patterns.items():
+        schema = schema.replace(placeholder, pattern)
+
+    return re.compile(schema)

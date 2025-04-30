@@ -20,8 +20,9 @@ from json import dumps
 from typing import Any, Callable, TypeVar
 
 from .config import Config
-from .custom_types import (COLORS, Callerinfo, Levels, LoggerException,
-                           Message, Module, Target, TerminalTarget)
+from .custom_types import COLORS, Callerinfo, Levels, Message
+from .module import Module
+from .targets import Target, TerminalTarget
 from .utils import (CustomEncoder, colorize, get_caller_info,
                     get_executable_formatted, get_time, replace_newline,
                     split_long_string)
@@ -58,8 +59,18 @@ class Logger:
         for target in Target.list():
             self.__print_in_target(level, msg, caller_info, target)
 
-    def __print_in_target(self, level : Levels, msg : Message, caller_info : Callerinfo, target : Target):
-        if not target["level"] <= level:
+    def __print_in_target(self, msg_level : Levels, msg : Message, caller_info : Callerinfo, target : Target):
+        if Module.exist(*caller_info):
+            name = Module.get(*caller_info).get_complete_name()
+            module_level = Module.get_level(name)
+        else:
+            module_level = Module.get_default_level()
+
+        # Determine the effective level for comparison
+        # effective_level = Levels.higher(module_level, target["level"])
+
+        # Check if the message level is below the effective level
+        if msg_level < module_level or msg_level < target["level"]:
             return
         result = ""
 
@@ -73,7 +84,7 @@ class Logger:
         result += self.__log_element_thread_name(target)
 
         # add the level of the message
-        result += self.__log_element_level(level, target)
+        result += self.__log_element_level(msg_level, target)
 
         # add the module name if needed
         result += self.__log_element_module(caller_info, target)
@@ -107,8 +118,7 @@ class Logger:
     def __log_element_level(self, level : Levels, target : Target) -> str:
         if target.type == Target.Type.TERMINAL:
             return f" [{level.color()}{level}{COLORS.RESET}]"
-        else:
-            return f" [{level}]"
+        return f" [{level}]"
 
     def __log_element_module(self, caller_info : Callerinfo, target : Target) -> str:
         result = ""
@@ -124,7 +134,11 @@ class Logger:
         if not isinstance(msg, str):
             msg = dumps(msg, indent=4, cls=CustomEncoder)
         msg = split_long_string(msg, 150)
-        return f" {replace_newline(msg, 32 + (20 if Module.exist(*caller_info) else 0))}"
+        indent = 32
+        if Module.exist(*caller_info):
+            # add 20 for each module name
+            indent += 20 * len(Module.get(*caller_info).get_complete_path())
+        return f" {replace_newline(msg, indent)}"
 
     def __print_message_in_target(self, msg : str, color : COLORS, target : Target):
         if target.type == Target.Type.TERMINAL:
@@ -139,8 +153,8 @@ class Logger:
 
 #---------------------------------------- Logging methods -----------------------------------------
 
-    @staticmethod
-    def trace(msg : Message, caller_info : Callerinfo|None = None):
+    @classmethod
+    def trace(cls, msg : Message, caller_info : Callerinfo|None = None):
         """
         Print a trace message to the standard output, in blue color
 
@@ -150,10 +164,10 @@ class Logger:
         """
         if caller_info is None:
             caller_info = get_caller_info()
-        Logger.get_instance().__print(Levels.TRACE, msg, caller_info) #pylint: disable=W0212
+        cls.get_instance().__print(Levels.TRACE, msg, caller_info) #pylint: disable=W0212
 
-    @staticmethod
-    def debug(msg : Message, caller_info : Callerinfo|None = None):
+    @classmethod
+    def debug(cls, msg : Message, caller_info : Callerinfo|None = None):
         """
         Print a debug message to the standard output, in magenta color
 
@@ -163,10 +177,10 @@ class Logger:
         """
         if caller_info is None:
             caller_info = get_caller_info()
-        Logger.get_instance().__print(Levels.DEBUG, msg, caller_info) #pylint: disable=W0212
+        cls.get_instance().__print(Levels.DEBUG, msg, caller_info) #pylint: disable=W0212
 
-    @staticmethod
-    def info(msg : Message, caller_info : Callerinfo|None = None):
+    @classmethod
+    def info(cls, msg : Message, caller_info : Callerinfo|None = None):
         """
         Print an info message to the standard output, in green color
 
@@ -176,10 +190,10 @@ class Logger:
         """
         if caller_info is None:
             caller_info = get_caller_info()
-        Logger.get_instance().__print(Levels.INFO, msg, caller_info) #pylint: disable=W0212
+        cls.get_instance().__print(Levels.INFO, msg, caller_info) #pylint: disable=W0212
 
-    @staticmethod
-    def warning(msg : Message, caller_info : Callerinfo|None = None):
+    @classmethod
+    def warning(cls, msg : Message, caller_info : Callerinfo|None = None):
         """
         Print a warning message to the standard output, in yellow color
 
@@ -189,10 +203,10 @@ class Logger:
         """
         if caller_info is None:
             caller_info = get_caller_info()
-        Logger.get_instance().__print(Levels.WARNING, msg, caller_info) #pylint: disable=W0212
+        cls.get_instance().__print(Levels.WARNING, msg, caller_info) #pylint: disable=W0212
 
-    @staticmethod
-    def error(msg : Message, caller_info : Callerinfo|None = None):
+    @classmethod
+    def error(cls, msg : Message, caller_info : Callerinfo|None = None):
         """
         Print an error message to the standard output, in red color
 
@@ -202,10 +216,10 @@ class Logger:
         """
         if caller_info is None:
             caller_info = get_caller_info()
-        Logger.get_instance().__print(Levels.ERROR, msg, caller_info) #pylint: disable=W0212
+        cls.get_instance().__print(Levels.ERROR, msg, caller_info) #pylint: disable=W0212
 
-    @staticmethod
-    def fatal(msg : Message, caller_info : Callerinfo|None = None):
+    @classmethod
+    def fatal(cls, msg : Message, caller_info : Callerinfo|None = None):
         """
         Print a fatal message to the standard output, in red color
 
@@ -215,10 +229,10 @@ class Logger:
         """
         if caller_info is None:
             caller_info = get_caller_info()
-        Logger.get_instance().__print(Levels.FATAL, msg, caller_info) #pylint: disable=W0212
+        cls.get_instance().__print(Levels.FATAL, msg, caller_info) #pylint: disable=W0212
 
-    @staticmethod
-    def message(msg : Message, color : COLORS = COLORS.NONE):
+    @classmethod
+    def message(cls, msg : Message, color : COLORS = COLORS.NONE):
         """
         Print a message to the standard output, in yellow color
         It is used to pass information to the user about the global execution of the program
@@ -227,71 +241,93 @@ class Logger:
             msg (Message): The message to print
             color (COLORS): The color of the message. It can be one of the COLORS enum values.
         """
-        Logger.get_instance().__print_message(msg, color) #pylint: disable=W0212
+        cls.get_instance().__print_message(msg, color) #pylint: disable=W0212
 
 #---------------------------------------- Configuration methods -----------------------------------
 
-    @staticmethod
-    def get_instance() -> 'Logger':
+    @classmethod
+    def get_instance(cls) -> 'Logger':
         """
-        Get the instance of the logger. If the instance does not exist, it will raise a LoggerException.
+        Get the instance of the logger. If the instance does not exist, it will create it.
         Returns:
             Logger: The instance of the logger.
         """
-        if Logger.__instance is None:
-            raise LoggerException("Logger instance does not exist")
-        return Logger.__instance
+        if cls.__instance is None:
+            Logger()
+        return cls.__instance # type: ignore
 
-
-    @staticmethod
-    def set_level(target_name: str, level : Levels):
+    @classmethod
+    def set_level(cls, target_name: str, level : Levels):
         """
         Set the level of a target. This will change the level of the target and filter the messages that will be printed.
         Args:
             target_name (str): The name of the target. It can be a callable, a string or a Target object.
             level (Levels): The level of the target. It can be one of the Levels enum values.
         """
+        cls.get_instance()
         target = Target.get(target_name)
         target["level"] = level
 
+    @classmethod
+    def set_module_level(cls, name : str, level : Levels):
+        """
+        Set the level of a module. This will change the level of the module and filter the messages that will be printed.
+        Args:
+            name (str): The name of the module. It can be a callable, a string or a Module object.
+            level (Levels): The level of the module. It can be one of the Levels enum values.
+        """
+        cls.get_instance()
+        Module.set_level(name, level)
 
-    @staticmethod
-    def set_module(name : str):
+    @classmethod
+    def set_default_module_level(cls, level : Levels):
+        """
+        Set the default level of a module. This will change the level of the module and filter the messages that will be printed.
+        Args:
+            level (Levels): The level of the module. It can be one of the Levels enum values.
+        """
+        cls.get_instance()
+        Module.set_default_level(level)
+
+    @classmethod
+    def set_module(cls, name : str|None):
         """
         Set the module name for the logger. This will be used to identify the module that generated the log message.
+        All logging methods will use the module name of the most recent set module, in the order of scope.
+        It mean that a module can be set for a whole file, a class, a function or a method.
+
         Args:
             name (str): The name of the module. If None, the module will be deleted.
         """
+        cls.get_instance()
         caller_info = get_caller_info()
         if not name:
             Module.delete(*caller_info)
         elif any(len(token) > 15 for token in name.split(".")):
-            raise ValueError("Module name should be less than 15 characters")
+            raise ValueError("Each module name should be less than 15 characters")
         else:
             Module.new(name, *caller_info)
 
-
-    @staticmethod
-    def show_threads_name(value : bool = True):
+    @classmethod
+    def show_threads_name(cls, value : bool = True):
         """
         Show the thread name in the log messages. This is useful to identify the thread that generated the log message.
         Args:
             value (bool): If True, the thread name will be shown. If False, it will not be shown.
         """
-        Logger.get_instance().config['show_threads_name'] = value
+        cls.get_instance().config['show_threads_name'] = value
 
-    @staticmethod
-    def show_process_name(value : bool = True):
+    @classmethod
+    def show_process_name(cls, value : bool = True):
         """
         Show the process name in the log messages. This is useful to identify the process that generated the log message.
         Args:
             value (bool): If True, the process name will be shown. If False, it will not be shown.
         """
-        Logger.get_instance().config['show_process_name'] = value
+        cls.get_instance().config['show_process_name'] = value
 
-
-    @staticmethod
-    def add_target(target_func : Callable[[str], None] | str | Target | TerminalTarget, level : Levels = Levels.INFO) -> str:
+    @classmethod
+    def add_target(cls, target_func : Callable[[str], None] | str | Target | TerminalTarget, level : Levels = Levels.INFO) -> str:
         """
         Add a target to the logger. This will register the target and add it to the list of targets.
         Args:
@@ -300,6 +336,7 @@ class Logger:
         Returns:
             str: The name of the target.
         """
+        cls.get_instance()
         target : Target|None = None
         if isinstance(target_func, str):
             target = Target.from_file(target_func)
@@ -307,7 +344,7 @@ class Logger:
             target = target_func
         else:
             target = Target(target_func)
-        Logger.set_level(target.name, level)
+        cls.set_level(target.name, level)
         return target.name
 
     @staticmethod
@@ -319,17 +356,13 @@ class Logger:
         """
         Target.unregister(target_name)
 
-
-    @staticmethod
-    def reset():
+    @classmethod
+    def reset(cls):
         """
         Reset the logger to its default state. This will remove all targets and clear the configuration.
         """
         Target.clear()
-        Logger.get_instance().config.clear()
-
-        if not Logger.__instance:
-            raise LoggerException("Logger instance does not exist")
+        cls.get_instance().config.clear()
 
         #configuring default target
         default_target = Target(TerminalTarget.STDOUT)
@@ -497,6 +530,3 @@ def chrono(func : Callable[..., T]) -> Callable[..., T]:
         debug(f"Function {func.__name__} took {end-start} to execute")
         return result
     return wrapper
-
-# create the instance of the logger
-Logger()
