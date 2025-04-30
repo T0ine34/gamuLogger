@@ -20,12 +20,12 @@ from json import dumps
 from typing import Any, Callable, TypeVar
 
 from .config import Config
-from .custom_types import (COLORS, Callerinfo, Levels, Message)
+from .custom_types import COLORS, Callerinfo, Levels, Message
+from .module import Module
+from .targets import Target, TerminalTarget
 from .utils import (CustomEncoder, colorize, get_caller_info,
                     get_executable_formatted, get_time, replace_newline,
                     split_long_string)
-from .targets import Target, TerminalTarget
-from .module import Module
 
 T = TypeVar('T')
 
@@ -59,18 +59,18 @@ class Logger:
         for target in Target.list():
             self.__print_in_target(level, msg, caller_info, target)
 
-    def __print_in_target(self, level : Levels, msg : Message, caller_info : Callerinfo, target : Target):
+    def __print_in_target(self, msg_level : Levels, msg : Message, caller_info : Callerinfo, target : Target):
         if Module.exist(*caller_info):
             name = Module.get(*caller_info).get_complete_name()
-            module_level = Module.get_level(name, target['level'])
+            module_level = Module.get_level(name)
         else:
-            module_level = target["level"]
+            module_level = Module.get_default_level()
 
         # Determine the effective level for comparison
-        effective_level = Levels.higher(module_level, target["level"])
-        
+        # effective_level = Levels.higher(module_level, target["level"])
+
         # Check if the message level is below the effective level
-        if level < effective_level:
+        if msg_level < module_level or msg_level < target["level"]:
             return
         result = ""
 
@@ -84,7 +84,7 @@ class Logger:
         result += self.__log_element_thread_name(target)
 
         # add the level of the message
-        result += self.__log_element_level(level, target)
+        result += self.__log_element_level(msg_level, target)
 
         # add the module name if needed
         result += self.__log_element_module(caller_info, target)
@@ -256,29 +256,41 @@ class Logger:
             Logger()
         return cls.__instance # type: ignore
 
-    @staticmethod
-    def set_level(target_name: str, level : Levels):
+    @classmethod
+    def set_level(cls, target_name: str, level : Levels):
         """
         Set the level of a target. This will change the level of the target and filter the messages that will be printed.
         Args:
             target_name (str): The name of the target. It can be a callable, a string or a Target object.
             level (Levels): The level of the target. It can be one of the Levels enum values.
         """
+        cls.get_instance()
         target = Target.get(target_name)
         target["level"] = level
 
-    @staticmethod
-    def set_module_level(name : str, level : Levels):
+    @classmethod
+    def set_module_level(cls, name : str, level : Levels):
         """
         Set the level of a module. This will change the level of the module and filter the messages that will be printed.
         Args:
             name (str): The name of the module. It can be a callable, a string or a Module object.
             level (Levels): The level of the module. It can be one of the Levels enum values.
         """
+        cls.get_instance()
         Module.set_level(name, level)
 
-    @staticmethod
-    def set_module(name : str|None):
+    @classmethod
+    def set_default_module_level(cls, level : Levels):
+        """
+        Set the default level of a module. This will change the level of the module and filter the messages that will be printed.
+        Args:
+            level (Levels): The level of the module. It can be one of the Levels enum values.
+        """
+        cls.get_instance()
+        Module.set_default_level(level)
+
+    @classmethod
+    def set_module(cls, name : str|None):
         """
         Set the module name for the logger. This will be used to identify the module that generated the log message.
         All logging methods will use the module name of the most recent set module, in the order of scope.
@@ -287,6 +299,7 @@ class Logger:
         Args:
             name (str): The name of the module. If None, the module will be deleted.
         """
+        cls.get_instance()
         caller_info = get_caller_info()
         if not name:
             Module.delete(*caller_info)
@@ -323,6 +336,7 @@ class Logger:
         Returns:
             str: The name of the target.
         """
+        cls.get_instance()
         target : Target|None = None
         if isinstance(target_func, str):
             target = Target.from_file(target_func)

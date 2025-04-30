@@ -16,7 +16,6 @@ from enum import Enum, IntEnum
 from typing import Protocol
 
 
-
 class COLORS(Enum):
     """
     usage:
@@ -97,7 +96,7 @@ class Levels(IntEnum):
         level = level.upper()
         if level in cls.__members__:
             return cls[level]
-        return cls.INFO
+        raise ValueError(f"Invalid level: {level}.")
 
     def __str__(self) -> str:
         """

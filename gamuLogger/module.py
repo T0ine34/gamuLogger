@@ -13,6 +13,7 @@ Module class for the logger system.
 
 from .custom_types import Levels
 
+
 class Module:
     """
     A class that represents a module in the logger system.
@@ -20,6 +21,7 @@ class Module:
     """
     __instances : dict[tuple[str|None, str|None], 'Module'] = {}
     __levels : dict[str, Levels] = {}
+    __default_level : Levels = Levels.INFO
     def __init__(self,
                  name : str,
                  parent : 'Module|None' = None,
@@ -177,11 +179,22 @@ class Module:
         cls.__levels[name] = level
 
     @classmethod
-    def get_level(cls, name : str, default : Levels) -> Levels:
+    def get_level(cls, name : str) -> Levels:
         """
         Get the level of the module instance by its name.
         """
-        if name in cls.__levels:
-            return cls.__levels[name]
-        return default
+        return cls.__levels[name] if name in cls.__levels else cls.__default_level
 
+    @classmethod
+    def set_default_level(cls, level : Levels):
+        """
+        Set the default level of the module instance.
+        """
+        cls.__default_level = level
+
+    @classmethod
+    def get_default_level(cls) -> Levels:
+        """
+        Get the default level of the module instance.
+        """
+        return cls.__default_level

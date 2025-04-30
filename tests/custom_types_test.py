@@ -104,10 +104,8 @@ class TestLevels:
             ("WARNING", Levels.WARNING), # Case-insensitive
             ("ErRoR", Levels.ERROR),  # Case-insensitive
             ("FATAL", Levels.FATAL), # Case-insensitive
-            ("invalid", Levels.INFO),  # Invalid level
-            ("", Levels.INFO),  # Empty string
         ],
-        ids=["trace", "debug", "info", "warning", "error", "fatal", "trace_uppercase", "debug_mixedcase", "info_mixedcase", "warning_uppercase", "error_mixedcase", "fatal_uppercase", "invalid", "empty"]
+        ids=["trace", "debug", "info", "warning", "error", "fatal", "trace_uppercase", "debug_mixedcase", "info_mixedcase", "warning_uppercase", "error_mixedcase", "fatal_uppercase"]
     )
     def test_from_string(self, level_str, expected_level):
 
@@ -116,6 +114,21 @@ class TestLevels:
 
         # Assert
         assert level == expected_level
+
+
+    @pytest.mark.parametrize(
+        "level_str",
+        [
+            "invalid",  # Invalid level
+            "",  # Empty string
+        ],
+        ids=["invalid", "empty"]
+    )
+    def test_from_string_invalid(self, level_str):
+        # Act & Assert
+        with pytest.raises(ValueError):
+            Levels.from_string(level_str)
+
 
     @pytest.mark.parametrize(
         "level, expected_str",

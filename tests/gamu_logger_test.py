@@ -23,8 +23,8 @@ from time import sleep
 import pytest
 
 from gamuLogger.gamu_logger import (Levels, Logger, Module, chrono, debug,
-                                    debug_func, info, message, trace_func,
-                                    warning, error)
+                                    debug_func, error, info, message,
+                                    trace_func, warning)
 
 
 class Test_Logger:
@@ -51,6 +51,7 @@ class Test_Logger:
     def test_levels(self, level, expected, capsys):
         Logger.reset()
         Module.clear()
+        Module.set_default_level(Levels.TRACE)
         Logger.set_level("stdout", Levels.TRACE)
         Logger.set_module("test")
         level("This is a message")
@@ -62,6 +63,7 @@ class Test_Logger:
     def test_message(self, capsys):
         Logger.reset()
         Module.clear()
+        Module.set_default_level(Levels.TRACE)
         Logger.set_level("stdout", Levels.INFO)
         message("This is a message")
         captured = capsys.readouterr()
@@ -72,6 +74,7 @@ class Test_Logger:
     def test_multiline(self, capsys):
         Logger.reset()
         Module.clear()
+        Module.set_default_level(Levels.TRACE)
         Logger.set_level("stdout", Levels.INFO)
         info("This is a message\nThis is a message")
         captured = capsys.readouterr()
@@ -82,6 +85,7 @@ class Test_Logger:
     def test_module(self, capsys):
         Logger.reset()
         Module.clear()
+        Module.set_default_level(Levels.TRACE)
         Logger.set_level("stdout", Levels.INFO)
         Logger.set_module("test")
         info("This is a message")
@@ -93,6 +97,7 @@ class Test_Logger:
     def test_sub_module(self, capsys):
         Logger.reset()
         Module.clear()
+        Module.set_default_level(Levels.TRACE)
         Logger.set_level("stdout", Levels.INFO)
         Logger.set_module("test")
         def subFunc():
@@ -107,6 +112,7 @@ class Test_Logger:
     def test_sub_sub_module(self, capsys):
         Logger.reset()
         Module.clear()
+        Module.set_default_level(Levels.TRACE)
         Logger.set_level("stdout", Levels.INFO)
         Logger.set_module("test")
         def subFunc():
@@ -124,6 +130,7 @@ class Test_Logger:
     def test_multiline_module(self, capsys):
         Logger.reset()
         Module.clear()
+        Module.set_default_level(Levels.TRACE)
         Logger.set_level("stdout", Levels.INFO)
         Logger.set_module("test")
         info("This is a message\nThis is a message")
@@ -135,12 +142,14 @@ class Test_Logger:
     def test_too_long_module_name(self):
         Logger.reset()
         Module.clear()
+        Module.set_default_level(Levels.TRACE)
         with pytest.raises(ValueError):
             Logger.set_module("This module name is too long")
 
     def test_chrono(self, capsys):
         Logger.reset()
         Module.clear()
+        Module.set_default_level(Levels.TRACE)
         Logger.set_level("stdout", Levels.DEBUG)
 
         @chrono
@@ -156,6 +165,7 @@ class Test_Logger:
     def test_trace_func(self, capsys):
         Logger.reset()
         Module.clear()
+        Module.set_default_level(Levels.TRACE)
         Logger.set_level("stdout", Levels.TRACE)
 
         @trace_func(True)
@@ -175,6 +185,7 @@ class Test_Logger:
     def test_debug_func(self, capsys):
         Logger.reset()
         Module.clear()
+        Module.set_default_level(Levels.TRACE)
         Logger.set_level("stdout", Levels.DEBUG)
 
         @debug_func(False)
@@ -194,6 +205,7 @@ class Test_Logger:
     def test_set_level(self, capsys):
         Logger.reset()
         Module.clear()
+        Module.set_default_level(Levels.TRACE)
         Logger.set_level("stdout", Levels.INFO)
 
         debug("This is a debug message that should not be displayed")
@@ -210,7 +222,7 @@ class Test_Logger:
     def test_fileTarget(self):
         Logger.reset()
         Module.clear()
-
+        Module.set_default_level(Levels.TRACE)
         with tempfile.TemporaryDirectory() as tmpdirname:
             Logger.add_target(tmpdirname + "/test.log")
 
@@ -227,6 +239,7 @@ class Test_Logger:
     def test_customFunctionAsTarget(self):
         Logger.reset()
         Module.clear()
+        Module.set_default_level(Levels.TRACE)
 
         out = []
         def customFunction(msg : str):
@@ -245,6 +258,7 @@ class Test_Logger:
     def test_module_specific_levels(self, capsys):
         Logger.reset()
         Module.clear()
+        Module.set_default_level(Levels.TRACE)
 
         # Set up modules with specific levels
         Logger.set_level("stdout", Levels.DEBUG)            # Default level for stdout
