@@ -123,9 +123,6 @@ class Levels(IntEnum):
     def __int__(self):
         return self.value
 
-    def __le__(self, other : 'Levels'):
-        return self.value <= other.value
-
     def color(self) -> COLORS:
         """
         Return the color associated with the level.
