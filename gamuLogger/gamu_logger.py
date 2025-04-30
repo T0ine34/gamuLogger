@@ -66,7 +66,11 @@ class Logger:
         else:
             module_level = target["level"]
 
-        if not Levels.higher(module_level, target["level"]) <= level:
+        # Determine the effective level for comparison
+        effective_level = Levels.higher(module_level, target["level"])
+        
+        # Check if the message level is below the effective level
+        if level < effective_level:
             return
         result = ""
 
