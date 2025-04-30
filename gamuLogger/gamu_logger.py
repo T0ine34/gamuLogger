@@ -304,7 +304,7 @@ class Logger:
         if not name:
             Module.delete(*caller_info)
         elif any(len(token) > 15 for token in name.split(".")):
-            raise ValueError("Module name should be less than 15 characters")
+            raise ValueError("Each module name should be less than 15 characters")
         else:
             Module.new(name, *caller_info)
 
