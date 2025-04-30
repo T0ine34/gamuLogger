@@ -12,7 +12,7 @@ Utility class for the logger module
 """
 
 import inspect
-from enum import Enum
+from enum import Enum, IntEnum
 from typing import Protocol
 
 
@@ -68,7 +68,7 @@ class COLORS(Enum):
     def __repr__(self):
         return self.value
 
-class Levels(Enum):
+class Levels(IntEnum):
     """
     ## list of Levels:
     - TRACE:        this level is used to print very detailed information, it may contain sensitive information
