@@ -11,6 +11,9 @@
 # pylint: disable=too-few-public-methods
 # pylint: disable=no-name-in-module
 # pylint: disable=import-error
+# pylint: disable=too-many-arguments
+# pylint: disable=too-many-positional-arguments
+# pylint: disable=protected-access
 # ###############################################################################################
 
 import re

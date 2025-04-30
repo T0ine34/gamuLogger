@@ -1,7 +1,15 @@
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+
+# ###############################################################################################
+#                                   PYLINT
+# Disable C0301 = Line too long (80 chars by line is not enough)
+# pylint: disable=line-too-long
+# ###############################################################################################
+
 """
 Utility functions for the logger module
 """
-
 
 import inspect
 import os
@@ -9,8 +17,10 @@ import sys
 from datetime import datetime
 from json import JSONEncoder
 from typing import Any
+import re
 
 from .custom_types import COLORS, Callerinfo, Stack
+from .regex import RE_YEAR, RE_MONTH, RE_DAY, RE_HOUR, RE_MINUTE, RE_SECOND, RE_PID, RE_DATE, RE_TIME, RE_DATETIME
 
 
 def get_caller_file_path(stack : Stack|None = None) -> str:
@@ -196,7 +206,6 @@ def string2seconds(string : str) -> int:
 
     return total_seconds
 
-
 def string2bytes(string : str) -> int:
     """Take a string like '1 KB', '2 MB', '3 GB', '21 TB' and convert it to bytes.
     Accept multiple units in the same string, like '1 KB 2 MB 3 GB'.
@@ -241,3 +250,42 @@ def string2bytes(string : str) -> int:
         else:
             raise ValueError(f"Unknown size unit: {unit}")
     return total_bytes
+
+def schema2regex(schema : str) -> re.Pattern[str]:
+    """
+    Convert a schema string to a regex pattern.
+
+    The schema can contain the following placeholders:
+        - `${date}`: the current date in YYYY-MM-DD format
+        - `${time}`: the current time in HH-MM-SS format
+        - `${datetime}`: the current date and time in YYYY-MM-DD_HH-MM-SS format
+
+        - `${year}`: the current year in YYYY format
+        - `${month}`: the current month in MM format
+        - `${day}`: the current day in DD format
+
+        - `${hour}`: the current hour in HH format
+        - `${minute}`: the current minute in MM format
+        - `${second}`: the current second in SS format
+
+        - `${pid}`: the current process id
+    """
+    # Define the regex patterns for each placeholder
+    patterns = {
+        "${date}": RE_DATE,
+        "${time}": RE_TIME,
+        "${datetime}": RE_DATETIME,
+        "${year}": RE_YEAR,
+        "${month}": RE_MONTH,
+        "${day}": RE_DAY,
+        "${hour}": RE_HOUR,
+        "${minute}": RE_MINUTE,
+        "${second}": RE_SECOND,
+        "${pid}": RE_PID,
+    }
+
+    # Replace the placeholders with their regex patterns
+    for placeholder, pattern in patterns.items():
+        schema = schema.replace(placeholder, pattern)
+
+    return re.compile(schema)

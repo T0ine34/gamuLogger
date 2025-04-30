@@ -11,12 +11,18 @@
 # pylint: disable=too-few-public-methods
 # pylint: disable=no-name-in-module
 # pylint: disable=import-error
+# pylint: disable=too-many-arguments
+# pylint: disable=too-many-positional-arguments
+# pylint: disable=protected-access
 # ###############################################################################################
 
+
+import os
+import time
+from unittest.mock import patch, mock_open
 import pytest
 
-from gamuLogger.targets import TerminalTarget, Target
-
+from gamuLogger.targets import WriteToFile, TerminalTarget, Target
 
 class TestTerminalTarget:
     @pytest.mark.parametrize(
@@ -383,3 +389,203 @@ class TestTarget:
         # Act & Assert
         with pytest.raises(ValueError):
             Target.unregister(target_name)
+
+
+class TestWriteToFile:
+    @pytest.fixture
+    def setup_folder(self, tmp_path):
+        folder = tmp_path / "logs"
+        schema = "${hour}-${minute}-${second}.log"
+        switch_condition = ("age > 1 hour",)
+        delete_condition = ("nb_files >= 5",)
+        return folder, schema, switch_condition, delete_condition
+
+    def test_init_creates_folder(self, setup_folder):
+        folder, schema, switch_condition, delete_condition = setup_folder
+
+        # Act
+        WriteToFile(str(folder), schema, switch_condition, delete_condition)
+
+        # Assert
+        assert os.path.exists(folder)
+
+    def test_invalid_switch_condition(self, setup_folder):
+        folder, schema, _, delete_condition = setup_folder
+        invalid_switch_condition = ("invalid_condition",)
+
+        # Act & Assert
+        with pytest.raises(ValueError):
+            WriteToFile(str(folder), schema, invalid_switch_condition, delete_condition)
+
+    def test_invalid_delete_condition(self, setup_folder):
+        folder, schema, switch_condition, _ = setup_folder
+        invalid_delete_condition = ("invalid_condition",)
+
+        # Act & Assert
+        with pytest.raises(ValueError):
+            WriteToFile(str(folder), schema, switch_condition, invalid_delete_condition)
+
+    @patch("gamuLogger.targets.time.localtime")
+    def test_create_new_file(self, mock_localtime, setup_folder):
+        folder, schema, switch_condition, delete_condition = setup_folder
+        mock_localtime.return_value = time.struct_time(
+            (2023, 1, 1, 12, 0, 0, 0, 0, 0)
+        )  # Mocked time
+
+        # Arrange
+        writer = WriteToFile(str(folder), schema, switch_condition, delete_condition)
+
+        # Act
+        writer._WriteToFile__create_new_file()
+
+        # Assert
+        expected_file = os.path.join(
+            str(folder), "12-00-00" + ".log"
+        )
+        assert writer.current_file == expected_file
+
+    @patch("os.listdir")
+    @patch("os.path.getctime")
+    def test_get_log_files_by_age(self, mock_getctime, mock_listdir, setup_folder):
+        folder, schema, switch_condition, delete_condition = setup_folder
+        mock_listdir.return_value = ["12-00-00.log", "12-01-00.log", "app.log"]
+        mock_getctime.side_effect = [100, 200]
+
+        # Arrange
+        writer = WriteToFile(str(folder), schema, switch_condition, delete_condition)
+
+        # Act
+        result = writer._WriteToFile__get_log_files_by_age()
+
+        # Assert
+        assert result == ["12-00-00.log", "12-01-00.log"]
+
+    @patch("os.path.getctime")
+    @patch("os.path.getsize")
+    def test_is_outdated(self, mock_getsize, mock_getctime, setup_folder):
+        folder, schema, switch_condition, delete_condition = setup_folder
+        mock_getctime.return_value = time.time() - 3600  # File created 1 hour ago
+        mock_getsize.return_value = 1024 * 1024  # File size is 1 MB
+
+        # Arrange
+        writer = WriteToFile(str(folder), schema, switch_condition, delete_condition)
+
+        # Act
+        result = writer._WriteToFile__is_outdated()
+
+        # Assert
+        assert result is True
+
+    @patch("os.remove")
+    @patch("os.listdir")
+    @patch("os.path.getctime")
+    @patch("time.time")
+    def test_delete_excess_files(self, mock_time, mock_getctime, mock_listdir, mock_remove, setup_folder):
+        folder, schema, switch_condition, delete_condition = setup_folder
+        mock_listdir.return_value = [
+            "12-00-00.log", "12-01-00.log", "12-02-00.log", "12-03-00.log", "12-04-00.log", "12-05-00.log"
+        ]  # 6 files to trigger the delete condition
+        mock_getctime.side_effect = [100, 200, 300, 400, 500, 600]
+        mock_time.return_value = 700
+
+        # Arrange
+        writer = WriteToFile(str(folder), schema, switch_condition, delete_condition)
+
+        # Act
+        writer._WriteToFile__delete_excess_files()
+
+        # Assert
+        assert mock_remove.call_count == 2  # Ensure at least one file was deleted
+        mock_remove.assert_any_call(os.path.join(str(folder), "12-00-00.log"))  # Oldest file should be deleted
+        mock_remove.assert_any_call(os.path.join(str(folder), "12-01-00.log"))
+
+    @patch("builtins.open", new_callable=mock_open)
+    @patch("gamuLogger.targets.WriteToFile._WriteToFile__is_outdated", return_value=True)
+    @patch("gamuLogger.targets.WriteToFile._WriteToFile__delete_excess_files")
+    def test_call(self, mock_delete_excess_files, mock_is_outdated, mock_file, setup_folder):
+        folder, schema, switch_condition, delete_condition = setup_folder
+
+        # Arrange
+        writer = WriteToFile(str(folder), schema, switch_condition, delete_condition)
+
+        # Act
+        writer("Test log entry\n")
+
+        # Assert
+        mock_file.assert_called_once_with(writer.current_file, "a", encoding="utf-8")
+        mock_file().write.assert_called_once_with("Test log entry\n")
+        mock_is_outdated.assert_called_once()
+        mock_delete_excess_files.assert_called_once()
+
+
+class TestFromFileSchema:
+    @pytest.fixture
+    def setup_folder(self, tmp_path):
+        folder = tmp_path / "logs"
+        schema = "${hour}-${minute}-${second}.log"
+        switch_condition = ("age > 1 hour",)
+        delete_condition = ("nb_files >= 5",)
+        return folder, schema, switch_condition, delete_condition
+
+    def test_from_file_schema_creates_target(self, setup_folder):
+        folder, schema, switch_condition, delete_condition = setup_folder
+
+        # Act
+        target = Target.from_file_schema(
+            str(folder), schema, switch_condition, delete_condition
+        )
+
+        # Assert
+        assert isinstance(target, Target)
+        assert target.name == str(folder)
+        assert target.type == Target.Type.FILE
+
+    def test_from_file_schema_creates_folder(self, setup_folder):
+        folder, schema, switch_condition, delete_condition = setup_folder
+
+        # Act
+        Target.from_file_schema(
+            str(folder), schema, switch_condition, delete_condition
+        )
+
+        # Assert
+        assert os.path.exists(folder)
+
+    def test_from_file_schema_invalid_switch_condition(self, setup_folder):
+        folder, schema, _, delete_condition = setup_folder
+        invalid_switch_condition = ("invalid_condition",)
+
+        # Act & Assert
+        with pytest.raises(ValueError):
+            Target.from_file_schema(
+                str(folder), schema, invalid_switch_condition, delete_condition
+            )
+
+    def test_from_file_schema_invalid_delete_condition(self, setup_folder):
+        folder, schema, switch_condition, _ = setup_folder
+        invalid_delete_condition = ("invalid_condition",)
+
+        # Act & Assert
+        with pytest.raises(ValueError):
+            Target.from_file_schema(
+                str(folder), schema, switch_condition, invalid_delete_condition
+            )
+
+    @patch("gamuLogger.targets.time.localtime")
+    def test_from_file_schema_creates_correct_file(self, mock_localtime, setup_folder):
+        folder, schema, switch_condition, delete_condition = setup_folder
+        mock_localtime.return_value = time.struct_time(
+            (2023, 1, 1, 12, 0, 0, 0, 0, 0)
+        )  # Mocked time
+
+        # Act
+        target = Target.from_file_schema(
+            str(folder), schema, switch_condition, delete_condition
+        )
+        target("Test log entry\n")
+
+        # Assert
+        expected_file = os.path.join(str(folder), "12-00-00.log")
+        assert os.path.exists(expected_file)
+        with open(expected_file, "r", encoding="utf-8") as f:
+            assert f.read() == "Test log entry\n"

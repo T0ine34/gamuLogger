@@ -11,6 +11,9 @@
 # pylint: disable=too-few-public-methods
 # pylint: disable=no-name-in-module
 # pylint: disable=import-error
+# pylint: disable=too-many-arguments
+# pylint: disable=too-many-positional-arguments
+# pylint: disable=protected-access
 # ###############################################################################################
 
 import os
@@ -295,7 +298,7 @@ class TestString2Seconds:
             ("7 years", 7*365*24*60*60),  # id: single_unit_years
             ("1 hour 30 minutes", 1*60*60 + 30*60),  # id: hour_minute
             ("2 days 3 hours 15 minutes", 2*24*60*60 + 3*60*60 + 15*60),  # id: day_hour_minute
-            ("1 year 1 month 1 week 1 day 1 hour 1 minute 1 second", 
+            ("1 year 1 month 1 week 1 day 1 hour 1 minute 1 second",
              1*365*24*60*60 + 1*30*24*60*60 + 1*7*24*60*60 + 1*24*60*60 + 1*60*60 + 1*60 + 1),  # id: complex_units
             ("1 second 2 minutes 3 hours", 1 + 2*60 + 3*60*60),  # id: mixed_units
             ("1 second 2 minutes", 1 + 2*60),  # id: mixed_units_no_hours

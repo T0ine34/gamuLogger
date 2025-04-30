@@ -16,14 +16,12 @@ import sys
 import threading
 from enum import Enum
 from typing import Callable, Any
-import re
 import time
 
-from.utils import string2seconds, string2bytes
+from .condition import condition_factory, AgeCondition, SizeCondition, NbFilesCondition
+from.utils import schema2regex
 
-RE_AGE_CONDITION = re.compile(r"age\s*(?P<operator>>|>=|<|<=)\s*(?P<value>\d+)\s*(?P<unit>(?:hour|minute|second|day|week|month|year)s?)")
-RE_SIZE_CONDITION = re.compile(r"size\s*(?P<operator>>|>=|<|<=)\s*(?P<value>\d+)\s*(?P<unit>(?:KB|MB|GB|TB)s?)")
-RE_NB_FILES_CONDITION = re.compile(r"nb_files\s*(?P<operator>>|>=|<|<=)\s*(?P<value>\d+)")
+
 
 class WriteToFile: #pylint: disable=R0903
     """
@@ -38,18 +36,13 @@ class WriteToFile: #pylint: disable=R0903
             os.makedirs(self.folder)
 
         self.schema = schema
+        self.schema_regex = schema2regex(self.schema)
         self.current_file = ""
         self.__create_new_file()
 
-        for condition in switch_condition:
-            if not any([RE_AGE_CONDITION.match(condition), RE_SIZE_CONDITION.match(condition)]):
-                raise ValueError(f"Invalid switch condition: {condition}")
-        self.switch_condition = switch_condition
+        self.switch_condition = [condition_factory(condition) for condition in switch_condition]
 
-        for condition in delete_condition:
-            if not any([RE_AGE_CONDITION.match(condition), RE_NB_FILES_CONDITION.match(condition)]):
-                raise ValueError(f"Invalid delete condition: {condition}")
-        self.delete_condition = delete_condition
+        self.delete_condition = [condition_factory(condition) for condition in delete_condition]
 
     def __create_new_file(self):
         """
@@ -59,6 +52,13 @@ class WriteToFile: #pylint: disable=R0903
         current_time = time.localtime()
         # create the file name based on the schema
         file_name = self.schema.replace("${date}", f"{current_time.tm_year}-{current_time.tm_mon:02d}-{current_time.tm_mday:02d}")
+        file_name = file_name.replace("${time}", f"{current_time.tm_hour:02d}:{current_time.tm_min:02d}:{current_time.tm_sec:02d}")
+        file_name = file_name.replace("${datetime}", f"{current_time.tm_year}-{current_time.tm_mon:02d}-{current_time.tm_mday:02d}_{current_time.tm_hour:02d}:{current_time.tm_min:02d}:{current_time.tm_sec:02d}")
+
+        file_name = file_name.replace("${year}", str(current_time.tm_year))
+        file_name = file_name.replace("${month}", f"{current_time.tm_mon:02d}")
+        file_name = file_name.replace("${day}", f"{current_time.tm_mday:02d}")
+
         file_name = file_name.replace("${hour}", f"{current_time.tm_hour:02d}")
         file_name = file_name.replace("${minute}", f"{current_time.tm_min:02d}")
         file_name = file_name.replace("${second}", f"{current_time.tm_sec:02d}")
@@ -67,78 +67,61 @@ class WriteToFile: #pylint: disable=R0903
         # create the full path for the file
         self.current_file = os.path.join(self.folder, file_name)
 
-    def __is_outdated_age(self, operator : str, value : int, unit : str) -> bool:
-        # get the file creation time
-        file_time = os.path.getctime(self.current_file)
-        # get the current time
-        current_time = time.time()
-        # get the difference in seconds
-        diff = current_time - file_time
-        # convert the value to seconds
-        value = string2seconds(f"{value} {unit}")
-
-        # compare the difference with the value
-        match operator:
-            case '>':
-                if diff > value:
-                    return True
-            case '>=':
-                if diff >= value:
-                    return True
-            case '<':
-                if diff < value:
-                    return True
-            case '<=':
-                if diff <= value:
-                    return True
-            case _:
-                raise ValueError(f"Invalid operator: {operator}")
-        return False
-
-    def __is_outdated_size(self, operator : str, value : int, unit : str) -> bool:
-        # get the file size
-        file_size = os.path.getsize(self.current_file)
-        # convert the value to bytes
-        value = string2bytes(f"{value} {unit}")
-
-        # compare the size with the value
-        match operator:
-            case '>':
-                if file_size > value:
-                    return True
-            case '>=':
-                if file_size >= value:
-                    return True
-            case '<':
-                if file_size < value:
-                    return True
-            case '<=':
-                if file_size <= value:
-                    return True
-            case _:
-                raise ValueError(f"Invalid operator: {operator}")
-        return False
+    def __get_log_files_by_age(self) -> list[str]:
+        """
+        Return the list of files in the folder that match the schema and are older than the current file.
+        """
+        # get the list of files in the folder
+        files = os.listdir(self.folder)
+        # filter the files that match the schema
+        files = [file for file in files if self.schema_regex.match(file)]
+        # sort the files by age (oldest first)
+        files.sort(key=lambda x: os.path.getctime(os.path.join(self.folder, x)))
+        return files
 
     def __is_outdated(self) -> bool:
         """
         Check if the file is outdated based on the switch condition.
         """
+        if not os.path.exists(self.current_file):
+            return True
+
         for condition in self.switch_condition:
-            if match := RE_AGE_CONDITION.match(condition):
-                operator = match.group('operator')
-                value = int(match.group('value'))
-                unit = match.group('unit')
-                if self.__is_outdated_age(operator, value, unit):
+            if isinstance(condition, AgeCondition):
+                if condition(os.path.getctime(self.current_file)):
                     return True
-            elif match := RE_SIZE_CONDITION.match(condition):
-                operator = match.group('operator')
-                value = int(match.group('value'))
-                unit = match.group('unit')
-                if self.__is_outdated_size(operator, value, unit):
+            elif isinstance(condition, SizeCondition):
+                if condition(os.path.getsize(self.current_file)):
                     return True
+            elif isinstance(condition, NbFilesCondition):
+                raise ValueError("NbFilesCondition is not supported for switching")
             else:
-                raise ValueError(f"Invalid switch condition: {condition}")
+                raise ValueError(f"Unknown condition type: {type(condition)}")
         return False
+
+    def __delete_excess_files(self) -> None:
+        """
+        Delete the files that exceed the limit.
+        """
+        oldest_files = self.__get_log_files_by_age()
+        to_delete : set[str] = set()
+        for condition in self.delete_condition:
+            if isinstance(condition, NbFilesCondition):
+                while condition(len(oldest_files)):
+                    # delete the oldest file
+                    to_delete.add(oldest_files.pop(0))
+            elif isinstance(condition, AgeCondition):
+                for file in oldest_files:
+                    edit_date = os.path.getctime(os.path.join(self.folder, file))
+                    age = time.time() - edit_date
+                    if condition(age):
+                        to_delete.add(file)
+            elif isinstance(condition, SizeCondition):
+                raise ValueError("SizeCondition is not supported for deletion")
+
+        # delete the files
+        for file in to_delete:
+            os.remove(os.path.join(self.folder, file))
 
     def __call__(self, string : str):
         """
@@ -152,6 +135,9 @@ class WriteToFile: #pylint: disable=R0903
         # write the string to the file
         with open(self.current_file, 'a', encoding="utf-8") as f:
             f.write(string)
+
+        # delete the excedent files
+        self.__delete_excess_files()
 
 
 class TerminalTarget(Enum):
@@ -256,11 +242,12 @@ class Target:
 
     @classmethod
     def from_file_schema(cls,
-            folder : str, schema : str = "${date} ${hour}:${minute}.log",
+            folder : str, schema : str = "${date}_${hour}:${minute}.log",
             switch_condition : tuple[str] = ("age > 1 hour",),
             delete_condition : tuple[str] = ("nb_files >= 5",)
         )-> 'Target':
-        """create a Target to write logs in files where the name is based on the schema
+        """create a Target to write logs in files where the name is based on a schema
+
         The schema can contain the following placeholders:
         - `${date}`: the current date in YYYY-MM-DD format
         - `${time}`: the current time in HH-MM-SS format
@@ -280,7 +267,7 @@ class Target:
         - `age > x unit`: the file will be created if it is older than x unit (e.g. `age > 1 hour`)
         - `size > x unit`: the file will be created if it is larger than x unit (e.g. `size > 1 MB`)
         If multiple condition are provided, the file will be created if any of them is true. (OR condition)
-        Operators allowed : `>`, `>=`, `<`, `<=`
+        Operators allowed : `>`, `>=`, `<`, `<=`, `==`
         Units allowed : `hour`, `minute`, `second`, `day`, `week`, `month`, `year`, `KB`, `MB`, `GB`, `TB`
         Support plural form of the unit (e.g. `hours`, `minutes`, `seconds`, `days`, `weeks`, `months`, `years`, `KBs`, `MBs`, `GBs`, `TBs`)
 
@@ -288,13 +275,14 @@ class Target:
         - `age > x unit`: the file will be deleted if it is older than x unit (e.g. `age > 1 hour`)
         - `nb_files > x`: the file will be deleted if there are more than x files in the folder (e.g. `nb_files > 5`)
         If multiple condition are provided, the file will be deleted if any of them is true. (OR condition)
+        Operators allowed : `>`, `>=`, `==`
+        To fullfill the `nb_files` condition, older files will be deleted first.
 
         Args:
             folder (str): folder where the files will be created
-            schema (str): schema for the file name. The default is "${date} ${hour}:${minute}.log".
+            schema (str): schema for the file name. The default is "${date}_${hour}:${minute}.log".
             switch_condition (str): condition to switch the file. The default is "age > 1 hour".
-            delete_condition (str): condition to delete the file. The default is "nb_files >= 5".
-            The file will be created in the folder specified in the folder argument.
+            delete_condition (str): condition to delete the file. The default is "nb_files > 5".
 
         Returns:
             Target: a Target instance that writes to the file specified by the schema
