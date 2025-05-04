@@ -240,6 +240,11 @@ class Target:
         def write_to_file(string : str):
             with open(file, 'a', encoding="utf-8") as f:
                 f.write(string)
+
+        dirname = os.path.dirname(file)
+        if dirname:
+            os.makedirs(dirname, exist_ok=True)
+
         with open(file, 'w', encoding="utf-8") as f: # clear the file
             f.write('')
         return cls(write_to_file, file)
