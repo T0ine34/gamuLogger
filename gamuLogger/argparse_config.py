@@ -47,7 +47,7 @@ def validate_log_file(_input : str) -> tuple[str, Levels]:
         file = _input
         level = "info"
     else:
-        file, level = _input.split(":")
+        file, level = _input.rsplit(":", 1)
 
     if not file:
         raise argparse.ArgumentTypeError(f"File cannot be empty: {_input}. ")

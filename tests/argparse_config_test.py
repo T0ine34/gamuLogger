@@ -57,8 +57,10 @@ class TestValidateLogFile:
             ("test.log", "test.log", Levels.INFO),  # Default level
             ("test.log:", "test.log", Levels.INFO), # Empty level, defaults to INFO
             ("test.log:info", "test.log", Levels.INFO), # Lowercase level
+            ("c:/path/to/test.log:DEBUG", "c:/path/to/test.log", Levels.DEBUG), # Windows path
+            ("/path/to/test.log:DEBUG", "/path/to/test.log", Levels.DEBUG), # Unix path
         ],
-        ids=["info", "debug", "warning", "default_level", "empty_level", "lowercase_level"]
+        ids=["info", "debug", "warning", "default_level", "empty_level", "lowercase_level", "windows_path", "unix_path"]
     )
     def test_valid_input(self, _input, expected_file, expected_level):
 
