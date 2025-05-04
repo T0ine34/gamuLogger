@@ -242,7 +242,7 @@ class Target:
                 f.write(string)
 
         dirname = os.path.dirname(file)
-        if not os.path.exists(dirname):
+        if dirname and not os.path.exists(dirname):
             os.makedirs(dirname)
 
         with open(file, 'w', encoding="utf-8") as f: # clear the file
