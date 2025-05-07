@@ -139,9 +139,9 @@ class Logger:
 
     def __print_message_in_target(self, msg : str, color : COLORS, target : Target):
         if target.type == Target.Type.TERMINAL:
-            target(f"{color}{msg}{COLORS.RESET}")
+            target(f"{color}{msg}{COLORS.RESET}\n")
         else:
-            target(msg+"\n")
+            target(msg + "\n")
 
     def __print_message(self, msg : str, color : COLORS): #pylint: disable=W0238
         for target in Target.list():
