@@ -27,6 +27,7 @@ from gamuLogger.gamu_logger import (Levels, Logger, Module)
 from gamuLogger.function import (chrono, debug,
                                 debug_func, error, info, message,
                                 trace_func, warning)
+from gamuLogger.targets import Target, TerminalTarget
 
 
 class Test_Logger:
@@ -340,3 +341,184 @@ class Test_Logger:
         # Assert
         get_instance_mock.assert_called_once()
         set_default_level_mock.assert_called_once_with(level)
+
+    def test_calling_constructor(self):
+        assert Logger() is Logger.get_instance()
+        
+    def test_show_process_name(self, capsys):
+        Logger.reset()
+        Module.clear()
+        Module.set_default_level(Levels.TRACE)
+        Logger.set_level("stdout", Levels.INFO)
+        Logger.show_process_name(True)
+        info("This is a message with process name")
+        captured = capsys.readouterr()
+        result = captured.out
+        print(result)
+        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*\w+.*\] \[.*  INFO   .*\] This is a message with process name", result)
+
+    def test_show_thread_name(self, capsys):
+        Logger.reset()
+        Module.clear()
+        Module.set_default_level(Levels.TRACE)
+        Logger.set_level("stdout", Levels.INFO)
+        Logger.show_threads_name(True)
+        info("This is a message with thread name")
+        captured = capsys.readouterr()
+        result = captured.out
+        print(result)
+        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*\w+.*\] \[.*  INFO   .*\] This is a message with thread name", result)
+
+
+    def test_show_process_name_file_target(self):
+        Logger.reset()
+        Module.clear()
+        Module.set_default_level(Levels.TRACE)
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            Logger.add_target(f"{tmpdirname}/test.log")
+            Logger.show_process_name(True)
+            info("This is a message with process name")
+            with open(f"{tmpdirname}/test.log", mode="r", encoding="utf-8") as file:
+                result = file.read()
+            print(result)
+            assert re.match(r"\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\] \[.*\w+.*\] \[  INFO   \] This is a message with process name", result)
+    
+    def test_show_thread_name_file_target(self):
+        Logger.reset()
+        Module.clear()
+        Module.set_default_level(Levels.TRACE)
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            Logger.add_target(f"{tmpdirname}/test.log")
+            Logger.show_threads_name(True)
+            info("This is a message with thread name")
+            with open(f"{tmpdirname}/test.log", mode="r", encoding="utf-8") as file:
+                result = file.read()
+            print(result)
+            assert re.match(r"\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\] \[.*\w+.*\] \[  INFO   \] This is a message with thread name", result)
+
+    def test_log_with_module_name_to_file(self):
+        Logger.reset()
+        Module.clear()
+        Module.set_default_level(Levels.TRACE)
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            Logger.add_target(f"{tmpdirname}/test.log")
+            Logger.set_module("test_module")
+            info("This is a message with module name")
+            with open(f"{tmpdirname}/test.log", mode="r", encoding="utf-8") as file:
+                result = file.read()
+            print(result)
+            assert re.match(r"\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\] \[.*  INFO   .*\] \[   test_module   \] This is a message with module name", result)
+
+    @pytest.mark.parametrize(
+        "input_data, expected_pattern",
+        [
+            ({"key": "value"}, r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  INFO   .*\] \{\n\s+|\s+'key': 'value'\n\s+|\s+\}"),
+            ([1, 2, 3], r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  INFO   .*\] \[\n\s+|\s+1,\n\s+|\s+2,\n\s+|\s+3\n\s+|\s+\]"),
+            (42, r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  INFO   .*\] 42"),
+            (3.14, r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  INFO   .*\] 3.14"),
+            (None, r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  INFO   .*\] null"),
+        ],
+        ids=["dict", "list", "int", "float", "none"]
+    )
+    def test_log_non_string(self, input_data, expected_pattern, capsys):
+        Logger.reset()
+        Module.clear()
+        Module.set_default_level(Levels.TRACE)
+        Logger.set_level("stdout", Levels.INFO)
+
+        info(input_data)
+
+        captured = capsys.readouterr()
+        result = captured.out
+        print(result)
+
+        assert re.match(expected_pattern, result)
+
+    def test_write_message_to_file(self):
+        Logger.reset()
+        Module.clear()
+        Module.set_default_level(Levels.TRACE)
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            file_path = f"{tmpdirname}/output.log"
+            Logger.add_target(file_path)
+            message("Writing this message to a file")
+            with open(file_path, mode="r", encoding="utf-8") as file:
+                result = file.read()
+            assert re.match(r"Writing this message to a file\n", result)
+
+    def test_delete_existing_module(self, capsys):
+        Logger.reset()
+        Module.clear()
+        Module.set_default_level(Levels.TRACE)
+        Logger.set_level("stdout", Levels.INFO)
+
+        # Set a module and log a message
+        Logger.set_module("test_module")
+        info("This is a message from test_module")
+        
+        # Capture the output
+        captured = capsys.readouterr()
+        result = captured.out
+        
+        print(result, end="")
+        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  INFO   .*\] \[ .*  test_module  .*\ ] This is a message from test_module", result)
+        
+        # Delete the module
+        Logger.set_module("")
+        
+        
+        # Log another message without a module
+        info("This is a message without a module")
+        
+        captured = capsys.readouterr()
+        result = captured.out.rsplit("\n")[-2]  # Get the last line of output
+        
+        print(result, end="")
+        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  INFO   .*\] This is a message without a module", result)
+        
+    def test_add_target_with_target_object(self, capsys):
+        Logger.reset()
+        Module.clear()
+        Module.set_default_level(Levels.TRACE)
+
+        # Create a custom Target object
+        custom_target = Target(TerminalTarget.STDOUT)
+
+        # Add the custom Target object
+        Logger.add_target(custom_target, Levels.INFO)
+
+        # Log a message
+        info("This is a message using a custom Target object")
+
+        # Capture the output
+        captured = capsys.readouterr()
+        result = captured.out
+        print(result)
+
+        # Assert the message is logged correctly
+        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  INFO   .*\] This is a message using a custom Target object", result)
+
+
+    def test_remove_target(self, capsys):
+        Logger.reset()
+        Module.clear()
+        Module.set_default_level(Levels.TRACE)
+
+        # Add a target
+        out = []
+        def custom_target(msg: str):
+            out.append(msg)
+
+        target_name = Logger.add_target(custom_target, Levels.INFO)
+
+        # Log a message to ensure the target is working
+        info("This is a message before removing the target")
+        assert len(out) == 1
+        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  INFO   .*\] This is a message before removing the target", out[0])
+
+        # Remove the target
+        Logger.remove_target(target_name)
+
+        # Log another message to ensure the target is no longer active
+        info("This is a message after removing the target")
+        assert len(out) == 1  # The target should not receive the second message

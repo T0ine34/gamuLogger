@@ -159,7 +159,7 @@ class Logger:
             msg (Message): The message to print
             caller_info (Callerinfo|None): The caller info. If None, the caller info will be retrieved from the stack.
         """
-        if caller_info is None:
+        if caller_info is None: #pragma: no cover
             caller_info = get_caller_info()
         cls.get_instance().__print(Levels.TRACE, msg, caller_info) #pylint: disable=W0212
 
@@ -172,7 +172,7 @@ class Logger:
             msg (Message): The message to print
             caller_info (Callerinfo|None): The caller info. If None, the caller info will be retrieved from the stack.
         """
-        if caller_info is None:
+        if caller_info is None: #pragma: no cover
             caller_info = get_caller_info()
         cls.get_instance().__print(Levels.DEBUG, msg, caller_info) #pylint: disable=W0212
 
@@ -185,7 +185,7 @@ class Logger:
             msg (Message): The message to print
             caller_info (Callerinfo|None): The caller info. If None, the caller info will be retrieved from the stack.
         """
-        if caller_info is None:
+        if caller_info is None: #pragma: no cover
             caller_info = get_caller_info()
         cls.get_instance().__print(Levels.INFO, msg, caller_info) #pylint: disable=W0212
 
@@ -198,7 +198,7 @@ class Logger:
             msg (Message): The message to print
             caller_info (Callerinfo|None): The caller info. If None, the caller info will be retrieved from the stack.
         """
-        if caller_info is None:
+        if caller_info is None: #pragma: no cover
             caller_info = get_caller_info()
         cls.get_instance().__print(Levels.WARNING, msg, caller_info) #pylint: disable=W0212
 
@@ -211,7 +211,7 @@ class Logger:
             msg (Message): The message to print
             caller_info (Callerinfo|None): The caller info. If None, the caller info will be retrieved from the stack.
         """
-        if caller_info is None:
+        if caller_info is None: #pragma: no cover
             caller_info = get_caller_info()
         cls.get_instance().__print(Levels.ERROR, msg, caller_info) #pylint: disable=W0212
 
@@ -224,7 +224,7 @@ class Logger:
             msg (Message): The message to print
             caller_info (Callerinfo|None): The caller info. If None, the caller info will be retrieved from the stack.
         """
-        if caller_info is None:
+        if caller_info is None: #pragma: no cover
             caller_info = get_caller_info()
         cls.get_instance().__print(Levels.FATAL, msg, caller_info) #pylint: disable=W0212
 
