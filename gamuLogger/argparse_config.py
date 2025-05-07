@@ -21,8 +21,8 @@ def validate_module_level(_input : str) -> tuple[str, Levels]:
     Validate the module level input
     """
     if ':' not in _input:
-        raise argparse.ArgumentTypeError(f"Invalid module level format: {_input}. "
-            "Format: MODULE:LEVEL, where LEVEL is one of: "
+        raise argparse.ArgumentTypeError(f"Invalid module level format: {_input}. " +
+            "Format: MODULE:LEVEL, where LEVEL is one of: " +
             f"{', '.join([level.name for level in Levels])}.")
 
     name, level = _input.split(":")
@@ -33,8 +33,8 @@ def validate_module_level(_input : str) -> tuple[str, Levels]:
     try:
         level = Levels.from_string(level)
     except ValueError:
-        raise argparse.ArgumentTypeError(f"Invalid logging level: {level}. "
-            "Format: LEVEL, where LEVEL is one of: "
+        raise argparse.ArgumentTypeError(f"Invalid logging level: {level}. " +
+            "Format: LEVEL, where LEVEL is one of: " +
             f"{', '.join([level.name for level in Levels])}.") from None
 
     return name, level
@@ -58,8 +58,8 @@ def validate_log_file(_input : str) -> tuple[str, Levels]:
     try:
         level = Levels.from_string(level)
     except ValueError:
-        raise argparse.ArgumentTypeError(f"Invalid logging level: {level}. "
-            "Format: LEVEL, where LEVEL is one of: "
+        raise argparse.ArgumentTypeError(f"Invalid logging level: {level}. " +
+            "Format: LEVEL, where LEVEL is one of: " +
             f"{', '.join([level.name for level in Levels])}.") from None
 
     return file, level
@@ -71,8 +71,8 @@ def validate_level(_input : str) -> Levels:
     try:
         level = Levels.from_string(_input)
     except ValueError:
-        raise argparse.ArgumentTypeError(f"Invalid logging level: {_input}. "
-            "Format: LEVEL, where LEVEL is one of: "
+        raise argparse.ArgumentTypeError(f"Invalid logging level: {_input}. " +
+            "Format: LEVEL, where LEVEL is one of: " +
             f"{', '.join([level.name for level in Levels])}.") from None
 
     return level
@@ -110,11 +110,11 @@ def config_argparse(parser : argparse.ArgumentParser, /, allow_other_targets : b
         type=validate_level,
         default="info",
         metavar="LEVEL",
-        help="Set the logging level. "
-             "Format: LEVEL, where LEVEL is one of: "
+        help="Set the logging level. " +
+             "Format: LEVEL, where LEVEL is one of: " +
              f"{', '.join([level.name for level in Levels])}.",
     )
-
+    print(allow_other_targets)
     if allow_other_targets:
         group.add_argument(
             "--log-file",
@@ -122,23 +122,23 @@ def config_argparse(parser : argparse.ArgumentParser, /, allow_other_targets : b
             default=[],
             type=validate_log_file,
             metavar="FILE:LEVEL",
-            help="Log to a file with a specific level (default: info). "
-                "Format: FILE:LEVEL, where LEVEL is one of: "
-                f"{', '.join([level.name for level in Levels])}. Can be ommited to use the default level."
+            help="Log to a file with a specific level (default: info). " +
+                "Format: FILE:LEVEL, where LEVEL is one of: " +
+                f"{', '.join([level.name for level in Levels])}. Can be ommited to use the default level." +
                 "You can specify multiple files.",
         )
 
-        group.add_argument(
-            "--module-level",
-            type=validate_module_level,
-            action="append",
-            default=[],
-            metavar="MODULE:LEVEL",
-            help="Set the logging level for a specific module. "
-                "If the name of the module doesn't exist, this do nothing. "
-                "Format: MODULE:LEVEL, where LEVEL is one of: "
-                f"{', '.join([level.name for level in Levels])}.",
-        )
+    group.add_argument(
+        "--module-level",
+        type=validate_module_level,
+        action="append",
+        default=[],
+        metavar="MODULE:LEVEL",
+        help="Set the logging level for a specific module. " +
+            "If the name of the module doesn't exist, this do nothing. " +
+            "Format: MODULE:LEVEL, where LEVEL is one of: " +
+            f"{', '.join([level.name for level in Levels])}.",
+    )
 
 
 def config_logger(args : argparse.Namespace):
@@ -181,5 +181,6 @@ def config_logger(args : argparse.Namespace):
             Logger.set_module_level(module, level)
 
     # Set the logging level for each file
-    for file, level in args.log_file:
-        Logger.add_target(Target.from_file(file), level)
+    if "log_file" in args:
+        for file, level in args.log_file:
+            Logger.add_target(Target.from_file(file), level)

@@ -28,7 +28,7 @@ class Condition(ABC):
         :param string: The string to parse.
         :return: An instance of Condition.
         """
-        raise NotImplementedError("Subclasses should implement this method.")
+        raise NotImplementedError("Subclasses should implement this method.") #pragma: no cover
 
     @classmethod
     @abstractmethod
@@ -39,14 +39,14 @@ class Condition(ABC):
         :param match: The regex match object.
         :return: An instance of Condition.
         """
-        raise NotImplementedError("Subclasses should implement this method.")
+        raise NotImplementedError("Subclasses should implement this method.") #pragma: no cover
 
     @abstractmethod
     def __call__(self, *args : Any, **kwargs : Any) -> bool:
         """
         Call method to evaluate the condition.
         """
-        raise NotImplementedError("Subclasses should implement this method.")
+        raise NotImplementedError("Subclasses should implement this method.") #pragma: no cover
 
 
 class AgeCondition(Condition):
