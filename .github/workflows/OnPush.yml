@@ -54,3 +54,12 @@ jobs:
       with:
         report_paths: 'test-report.xml'
         include_passed: true
+
+    - name: cobertura-report
+      if: steps.check_branch.outputs.match == 'true' && success() || failure()
+      uses: 5monkeys/cobertura-action@v14
+      with:
+        path: coverage.xml
+        minimum_coverage: 80
+        fail_below_threshold: true
+        report_name: Coverage Report (${{ matrix.python-version }})
