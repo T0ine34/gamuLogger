@@ -54,6 +54,7 @@ jobs:
       with:
         report_paths: 'test-report.xml'
         include_passed: true
+        check_name: 'Test Report (${{ matrix.python-version }})'
 
     - name: cobertura-report
       if: steps.check_branch.outputs.match == 'true' && success() || failure()
