@@ -23,9 +23,10 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from gamuLogger.gamu_logger import (Levels, Logger, Module, chrono, debug,
-                                    debug_func, error, info, message,
-                                    trace_func, warning)
+from gamuLogger.gamu_logger import (Levels, Logger, Module)
+from gamuLogger.function import (chrono, debug,
+                                debug_func, error, info, message,
+                                trace_func, warning)
 
 
 class Test_Logger:

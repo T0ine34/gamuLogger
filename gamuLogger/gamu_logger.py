@@ -15,9 +15,8 @@ Antoine Buirey 2025
 
 
 import threading
-from datetime import datetime
 from json import dumps
-from typing import Any, Callable, TypeVar
+from typing import Any, Callable
 
 from .config import Config
 from .custom_types import COLORS, Callerinfo, Levels, Message
@@ -26,8 +25,6 @@ from .targets import Target, TerminalTarget
 from .utils import (CustomEncoder, colorize, get_caller_info,
                     get_executable_formatted, get_time, replace_newline,
                     split_long_string)
-
-T = TypeVar('T')
 
 class Logger:
     """
@@ -367,166 +364,3 @@ class Logger:
         #configuring default target
         default_target = Target(TerminalTarget.STDOUT)
         default_target["level"] = Levels.INFO
-
-def trace(msg : Message):
-    """
-    Print a trace message to the standard output, in blue color\n
-
-    Args:
-        msg (Message): The message to print
-    """
-    Logger.trace(msg, get_caller_info())
-
-def debug(msg : Message):
-    """
-    Print a debug message to the standard output, in blue color\n
-
-    Args:
-        msg (Message): The message to print
-    """
-    Logger.debug(msg, get_caller_info())
-
-def info(msg : Message):
-    """
-    Print an info message to the standard output, in green color\n
-
-    Args:
-        msg (Message): The message to print
-    """
-    Logger.info(msg, get_caller_info())
-
-def warning(msg : Message):
-    """
-    Print a warning message to the standard output, in yellow color\n
-
-    Args:
-        msg (Message): The message to print
-    """
-    Logger.warning(msg, get_caller_info())
-
-def error(msg : Message):
-    """
-    Print an error message to the standard output, in red color\n
-
-    Args:
-        msg (Message): The message to print
-    """
-    Logger.error(msg, get_caller_info())
-
-def fatal(msg : Message):
-    """
-    Print a fatal message to the standard output, in red color\n
-
-    Args:
-        msg (Message): The message to print
-    """
-    Logger.fatal(msg, get_caller_info())
-
-
-def message(msg : Message, color : COLORS = COLORS.NONE):
-    """
-    Print a message to the standard output, in yellow color\n
-    It is used to pass information to the user about the global execution of the program
-    """
-    Logger.message(msg, color)
-
-
-def trace_func(use_chrono : bool = False) -> Callable[[Callable[..., T]], Callable[..., T]]:
-    """
-    Decorator to print trace messages before and after the function call
-    usage:
-    ```python
-    @trace_func(use_chrono=False)
-    def my_function(arg1, arg2, kwarg1=None):
-        return arg1+arg2
-
-    my_function("value1", "value2", kwarg1="value3")
-    ```
-    will print:
-    ```
-    [datetime] [   TRACE   ] Calling my_function with\n\t\t\t   | args: (value1, value2)\n\t\t\t   | kwargs: {'kwarg1': 'value3'}
-    [datetime] [   TRACE   ] Function my_function returned "value1value2"
-    ```
-
-    note: this decorator does nothing if the Logger level is not set to trace
-    """
-    def pre_wrapper(func : Callable[..., T]) -> Callable[..., T]:
-        def wrapper(*args : Any, **kwargs : Any) -> T:
-            Logger.trace(f"Calling {func.__name__} with\nargs: {args}\nkwargs: {kwargs}", get_caller_info())
-            start = None
-            if use_chrono:
-                start = datetime.now()
-            result = func(*args, **kwargs)
-            if use_chrono and start is not None:
-                end = datetime.now()
-                time_delta = str(end - start).split(".", maxsplit=1)[0]
-                Logger.trace(f"Function {func.__name__} took {time_delta} to execute and returned \"{result}\"", get_caller_info())
-            else:
-                Logger.trace(f"Function {func.__name__} returned \"{result}\"", get_caller_info())
-            return result
-        return wrapper
-    return pre_wrapper
-
-
-def debug_func(use_chrono : bool = False) -> Callable[[Callable[..., T]], Callable[..., T]]:
-    """
-    Decorator to print trace messages before and after the function call
-    usage:
-    ```python
-    @trace_func
-    def my_function(arg1, arg2, kwarg1=None):
-        return arg1+arg2
-
-    my_function("value1", "value2", kwarg1="value3")
-    ```
-    will print:
-    ```log
-    [datetime] [   DEBUG   ] Calling my_function with\n\t\t\t   | args: (value1, value2)\n\t\t\t   | kwargs: {'kwarg1': 'value3'}
-    [datetime] [   DEBUG   ] Function my_function returned "value1value2"
-    ```
-
-    note: this decorator does nothing if the Logger level is not set to debug or trace
-    """
-
-    def pre_wrapper(func : Callable[..., T]) -> Callable[..., T]:
-        def wrapper(*args : Any, **kwargs : Any) -> T:
-            Logger.debug(f"Calling {func.__name__} with\nargs: {args}\nkwargs: {kwargs}", get_caller_info())
-            start = None
-            if use_chrono:
-                start = datetime.now()
-            result = func(*args, **kwargs)
-            if use_chrono and start is not None:
-                end = datetime.now()
-                time_delta = str(end - start).split(".", maxsplit=1)[0]
-                Logger.debug(f"Function {func.__name__} took {time_delta} to execute and returned \"{result}\"", get_caller_info())
-            else:
-                Logger.debug(f"Function {func.__name__} returned \"{result}\"", get_caller_info())
-            return result
-        return wrapper
-    return pre_wrapper
-
-
-def chrono(func : Callable[..., T]) -> Callable[..., T]:
-    """
-    Decorator to print the execution time of a function
-    usage:
-    ```python
-    @chrono
-    def my_function(arg1, arg2, kwarg1=None):
-        return arg1+arg2
-
-    my_function("value1", "value2", kwarg1="value3")
-    ```
-    will print:
-    ```log
-    [datetime] [   DEBUG   ] Function my_function took 0.0001s to execute
-    ```
-    """
-
-    def wrapper(*args : Any, **kwargs : Any) -> T:
-        start = datetime.now()
-        result = func(*args, **kwargs)
-        end = datetime.now()
-        debug(f"Function {func.__name__} took {end-start} to execute")
-        return result
-    return wrapper
