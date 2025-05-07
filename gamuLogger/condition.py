@@ -16,7 +16,8 @@ class Condition(ABC):
         ">=": lambda x, y: x >= y,
         "<": lambda x, y: x < y,
         "<=": lambda x, y: x <= y,
-        "==": lambda x, y: x == y
+        "==": lambda x, y: x == y,
+        "!=": lambda x, y: x != y
     }
 
     @classmethod
@@ -58,13 +59,15 @@ class AgeCondition(Condition):
         """
         Initialize the AgeCondition with an operator, value, and unit.
 
-        Operators allowed : `>`, `>=`, `<`, `<=`, `==`
+        Operators allowed : `>`, `>=`, `<`, `<=`, `==`, `!=`
         Units allowed : `hour`, `minute`, `second`, `day`, `week`, `month`, `year`
         Support plural form of the unit
         (`hours`, `minutes`, `seconds`, `days`, `weeks`, `months`, `years`)
         """
 
         self.__age_in_seconds = string2seconds(f"{value} {unit}")
+        if operator not in self.operators:
+            raise ValueError(f"Invalid operator: {operator}")
         self.__operator = operator
 
     @classmethod
@@ -102,10 +105,6 @@ class AgeCondition(Condition):
         :param age: The age to evaluate, in seconds.
         :return: True if the condition is met, False otherwise.
         """
-
-        if self.__operator not in self.operators:
-            raise ValueError(f"Invalid operator: {self.__operator}")
-
         return self.operators[self.__operator](age, self.__age_in_seconds)
 
 
@@ -118,13 +117,15 @@ class SizeCondition(Condition):
         """
         Initialize the SizeCondition with an operator, value, and unit.
 
-        Operators allowed : `>`, `>=`, `<`, `<=`, `==`
+        Operators allowed : `>`, `>=`, `<`, `<=`, `==`, `!=`
         Units allowed : `B`, `KB`, `MB`, `GB`, `TB`, `PB`, `EB`, `ZB`, `YB`
         Support plural form of the unit
         (`Bs`, `KBs`, `MBs`, `GBs`, `TBs`, `PBs`, `EBs`, `ZBs`, `YBs`)
         """
 
         self.__size_in_bytes = string2bytes(f"{value} {unit}")
+        if operator not in self.operators:
+            raise ValueError(f"Invalid operator: {operator}")
         self.__operator = operator
 
     @classmethod
@@ -162,8 +163,6 @@ class SizeCondition(Condition):
         :param size: The size to evaluate, in bytes.
         :return: True if the condition is met, False otherwise.
         """
-        if self.__operator not in self.operators:
-            raise ValueError(f"Invalid operator: {self.__operator}")
         return self.operators[self.__operator](size, self.__size_in_bytes)
 
 
@@ -176,10 +175,10 @@ class NbFilesCondition(Condition):
         """
         Initialize the NbFilesCondition with an operator and value.
 
-        Operators allowed : `>`, `>=`, `==`
+        Operators allowed : `>`, `>=`, `==`, `!=`
         """
 
-        if operator not in (">", ">=", "=="):
+        if operator not in (">", ">=", "==", "!="):
             raise ValueError(f"Invalid operator: {operator}")
 
         self.__nb_files = value
@@ -195,7 +194,7 @@ class NbFilesCondition(Condition):
         """
         match = re.match(RE_NB_FILES_CONDITION, string)
         if not match:
-            raise ValueError(f"Invalid number of files condition: {string}")
+            raise ValueError(f"Invalid condition: {string}")
 
         return cls.from_match(match)
 
@@ -219,9 +218,6 @@ class NbFilesCondition(Condition):
         :param nb_files: The number of files to evaluate.
         :return: True if the condition is met, False otherwise.
         """
-        if self.__operator not in self.operators:
-            raise ValueError(f"Invalid operator: {self.__operator}")
-
         return self.operators[self.__operator](nb_files, self.__nb_files)
 
 

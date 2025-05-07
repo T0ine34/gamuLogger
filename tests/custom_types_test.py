@@ -150,6 +150,11 @@ class TestLevels:
         # Assert
         assert result == expected_str
 
+    def test_str_NONE(self):
+        # Act
+        with pytest.raises(ValueError):
+            str(Levels.NONE)
+
     @pytest.mark.parametrize(
         "level, expected_int",
         [
@@ -207,3 +212,34 @@ class TestLevels:
 
         # Assert
         assert color == expected_color
+
+    def test_color_NONE(self):
+        # Act
+        with pytest.raises(ValueError):
+            Levels.NONE.color()
+
+    @pytest.mark.parametrize(
+        "level1, level2",
+        [
+            (Levels.DEBUG, Levels.TRACE),
+            (Levels.INFO, Levels.DEBUG),
+            (Levels.WARNING, Levels.INFO),
+            (Levels.ERROR, Levels.WARNING),
+            (Levels.FATAL, Levels.ERROR),
+            (Levels.NONE, Levels.FATAL),
+            (Levels.NONE, Levels.NONE),
+            (Levels.NONE, Levels.DEBUG),
+            (Levels.NONE, Levels.INFO),
+            (Levels.NONE, Levels.WARNING),
+            (Levels.NONE, Levels.ERROR),
+            (Levels.NONE, Levels.TRACE)
+        ],
+        ids=["trace_debug", "debug_info", "info_warning", "warning_error", "error_fatal", "fatal_none", "none_none", "none_debug", "none_info", "none_warning", "none_error", "none_trace"]
+    )
+    def test_higher(self, level1, level2):
+        # Act
+        result = Levels.higher(level1, level2)
+
+        # Assert
+        assert result == level1
+        

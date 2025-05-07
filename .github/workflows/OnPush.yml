@@ -61,6 +61,6 @@ jobs:
       uses: 5monkeys/cobertura-action@v14
       with:
         path: coverage.xml
-        minimum_coverage: 80
+        minimum_coverage: 90
         fail_below_threshold: true
         report_name: Coverage Report (${{ matrix.python-version }})

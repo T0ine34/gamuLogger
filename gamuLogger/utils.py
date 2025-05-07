@@ -190,19 +190,18 @@ def string2seconds(string : str) -> int:
     parts = string.split()
     total_seconds = 0
 
+    if not len(parts) % 2 == 0:
+        raise ValueError("Invalid input format. Expected 'value unit' pairs.")
     for i in range(0, len(parts), 2):
-        if not parts[i].isdigit():
-            raise ValueError(f"Invalid value: {parts[i]}")
-        if i + 1 >= len(parts):
-            raise ValueError("Missing unit after value")
-        if not parts[i + 1] in time_units and not parts[i + 1][:-1] in time_units:
-            raise ValueError(f"Unknown time unit: {parts[i + 1]}")
-        value = int(parts[i])
-        unit = parts[i + 1].lower()
+        value, unit = parts[i], parts[i + 1].lower()
+        if not value.isdigit():
+            raise ValueError(f"Invalid value: {value}")
         if unit.endswith('s'):
-            unit = unit[:-1]  # Remove the trailing 's' for plural units
-        if unit in time_units:
-            total_seconds += value * time_units[unit]
+            unit = unit[:-1]
+        if unit not in time_units:
+            raise ValueError(f"Unknown time unit: {unit}")
+
+        total_seconds += int(value) * time_units[unit]
 
     return total_seconds
 

@@ -38,7 +38,7 @@ install: dist/$(WHEEL)
 
 tests: $(SOURCES) $(TESTS)
 	-@$(PYTHON_FOLDER)coverage run --branch -m pytest --junitxml=test-report.xml tests
-	@$(PYTHON_FOLDER)coverage html -d htmlcov --omit=env/*,tests/*,gamuLogger/__init__.py --title "GAMU Logger Test Coverage"
+	@$(PYTHON_FOLDER)coverage html -d htmlcov --omit=env/*,tests/*,gamuLogger/__init__.py --title "gamuLogger Test Coverage"
 	@$(PYTHON_FOLDER)coverage xml -o coverage.xml --omit=env/*,tests/*,gamuLogger/__init__.py
 	@$(PYTHON_FOLDER)coverage report -m --omit=env/*,tests/*,gamuLogger/__init__.py --show-missing
 	@rm -rf .coverage
