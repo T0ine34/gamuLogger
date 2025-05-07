@@ -114,7 +114,6 @@ def config_argparse(parser : argparse.ArgumentParser, /, allow_other_targets : b
              "Format: LEVEL, where LEVEL is one of: " +
              f"{', '.join([level.name for level in Levels])}.",
     )
-    print(allow_other_targets)
     if allow_other_targets:
         group.add_argument(
             "--log-file",
