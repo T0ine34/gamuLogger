@@ -116,7 +116,7 @@ class Levels(IntEnum):
                 return '  ERROR  '
             case Levels.FATAL:
                 return '  FATAL  '
-            case Levels.NONE:
+            case Levels.NONE: #pragma: no cover
                 raise ValueError("NONE level is not a valid level for string representation")
 
     def __int__(self):
@@ -145,7 +145,7 @@ class Levels(IntEnum):
                 return COLORS.RED
             case Levels.FATAL:
                 return COLORS.DARK_RED
-            case Levels.NONE:
+            case Levels.NONE: #pragma: no cover
                 raise ValueError("NONE level is not a valid level for color")
 
     @staticmethod
@@ -161,7 +161,7 @@ class SupportsStr(Protocol): #pylint: disable=R0903
     """
     A protocol that defines a __str__ method.
     """
-    def __str__(self) -> str: ...
+    def __str__(self) -> str: ... #pragma: no cover
 
 
 type Callerinfo = tuple[str, str]

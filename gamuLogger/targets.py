@@ -34,8 +34,8 @@ class WriteToFile: #pylint: disable=R0903
         self.folder = folder
 
         # create the folder if it does not exist
-        if not os.path.exists(self.folder):
-            os.makedirs(self.folder)
+        if not os.path.exists(self.folder): #pragma: no cover
+            os.makedirs(self.folder, exist_ok=True)
 
         self.schema = schema
         self.schema_regex = schema2regex(self.schema)
@@ -97,7 +97,7 @@ class WriteToFile: #pylint: disable=R0903
                     return True
             elif isinstance(condition, NbFilesCondition):
                 raise ValueError("NbFilesCondition is not supported for switching")
-            else:
+            else: # pragma: no cover
                 raise ValueError(f"Unknown condition type: {type(condition)}")
         return False
 
@@ -106,12 +106,12 @@ class WriteToFile: #pylint: disable=R0903
         Delete the files that exceed the limit.
         """
         oldest_files = self.__get_log_files_by_age()
-        to_delete : set[str] = set()
+        to_delete: set[str] = set()
+
         for condition in self.delete_condition:
             if isinstance(condition, NbFilesCondition):
                 while condition(len(oldest_files)):
-                    # delete the oldest file
-                    to_delete.add(oldest_files.pop(0))
+                    to_delete.add(oldest_files.pop(0))  # Delete oldest files first
             elif isinstance(condition, AgeCondition):
                 for file in oldest_files:
                     edit_date = os.path.getctime(os.path.join(self.folder, file))
@@ -121,7 +121,7 @@ class WriteToFile: #pylint: disable=R0903
             elif isinstance(condition, SizeCondition):
                 raise ValueError("SizeCondition is not supported for deletion")
 
-        # delete the files
+        # Delete the files
         for file in to_delete:
             os.remove(os.path.join(self.folder, file))
 
@@ -152,11 +152,7 @@ class TerminalTarget(Enum):
     STDERR = 31
 
     def __str__(self) -> str:
-        match self:
-            case TerminalTarget.STDOUT:
-                return 'stdout'
-            case TerminalTarget.STDERR:
-                return 'stderr'
+        return self.name.lower()
 
     @staticmethod
     def from_string(target : str) -> 'TerminalTarget':

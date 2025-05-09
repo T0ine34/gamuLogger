@@ -462,10 +462,33 @@ class TestWriteToFile:
 
     @patch("os.path.getctime")
     @patch("os.path.getsize")
-    def test_is_outdated(self, mock_getsize, mock_getctime, setup_folder):
-        folder, schema, switch_condition, delete_condition = setup_folder
-        mock_getctime.return_value = time.time() - 3600  # File created 1 hour ago
-        mock_getsize.return_value = 1024 * 1024  # File size is 1 MB
+    @patch("os.path.exists")
+    @pytest.mark.parametrize(
+        "file_exists, file_size, file_age, expected_result, switch_condition, delete_condition",
+        [
+            # age for switch, nb_files for delete
+            (True, 1024 * 1024, 4000, True, ("age > 1 hour",), ("nb_files >= 5",)),  # File is outdated
+            (True, 1024 * 1024, 1800, False, ("age > 1 hour",), ("nb_files >= 5",)),  # File is not outdated
+            (False, 0, 0, True, ("age > 1 hour",), ("nb_files >= 5",)),  # File does not exist
+            # file size for switch, age for delete
+            (True, 1024 * 1024 + 512, 4000, True, ("size > 1 MB",), ("age > 1 hour",)),  # File is outdated
+            (True, 512 * 1024, False, False, ("size > 1 MB",), ("age > 1 hour",)),  # File is not outdated
+            (False, 0, 0, True, ("size > 1 MB",), ("age > 1 hour",)),  # File does not exist
+        ],
+        ids=[
+            "file_exists_outdated",
+            "file_exists_not_outdated",
+            "file_does_not_exist",
+            "file_exists_outdated_size",
+            "file_exists_not_outdated_size",
+            "file_does_not_exist_size",
+        ],
+    )
+    def test_is_outdated(self, mock_exists, mock_getsize, mock_getctime, file_exists, file_size, file_age, expected_result, switch_condition, delete_condition, setup_folder):
+        folder, schema, _, _ = setup_folder
+        mock_exists.return_value = file_exists
+        mock_getsize.return_value = file_size
+        mock_getctime.return_value = file_age
 
         # Arrange
         writer = WriteToFile(str(folder), schema, switch_condition, delete_condition)
@@ -474,19 +497,66 @@ class TestWriteToFile:
         result = writer._WriteToFile__is_outdated()
 
         # Assert
-        assert result is True
+        assert result == expected_result
+
+
+    # test is_outdated with a a nb_files_condition for switch (should raise ValueError)
+    @patch("os.path.getctime")
+    @patch("os.path.getsize")
+    @patch("os.path.exists")
+    @pytest.mark.parametrize(
+        "file_exists, file_size, file_age, expected_result, switch_condition, delete_condition",
+        [
+            (True, 1024 * 1024, 4000, True, ("nb_files > 5",), ("age > 1 hour",)),  # File is outdated
+        ],
+        ids=[
+            "nb_files_condition",
+        ],
+    )
+    def test_is_outdated_invalid_conditions(self, mock_exists, mock_getsize, mock_getctime, file_exists, file_size, file_age, expected_result, switch_condition, delete_condition, setup_folder):
+        folder, schema, _, _ = setup_folder
+        mock_exists.return_value = file_exists
+        mock_getsize.return_value = file_size
+        mock_getctime.return_value = file_age
+
+        # Arrange
+        writer = WriteToFile(str(folder), schema, switch_condition, delete_condition)
+
+        # Act & Assert
+        with pytest.raises(ValueError):
+            writer._WriteToFile__is_outdated()
+            
 
     @patch("os.remove")
     @patch("os.listdir")
     @patch("os.path.getctime")
     @patch("time.time")
-    def test_delete_excess_files(self, mock_time, mock_getctime, mock_listdir, mock_remove, setup_folder):
-        folder, schema, switch_condition, delete_condition = setup_folder
-        mock_listdir.return_value = [
-            "12-00-00.log", "12-01-00.log", "12-02-00.log", "12-03-00.log", "12-04-00.log", "12-05-00.log"
-        ]  # 6 files to trigger the delete condition
-        mock_getctime.side_effect = [100, 200, 300, 400, 500, 600]
-        mock_time.return_value = 700
+    @pytest.mark.parametrize(
+        "files, file_ages, delete_condition, expected_files_to_delete",
+        [
+            # nb_files for delete
+            (["12-54-47.log", "13-52-28.log"], [1000, 2000], ("nb_files >= 1",), ["13-52-28.log"]), # one file should be deleted
+            (["12-54-47.log", "13-52-28.log"], [1000, 2000], ("nb_files == 5",), []),  # No files should be deleted
+            (["12-54-47.log"], [1000], ("nb_files >= 5",), []),  # No files to delete
+            # age for delete
+            (["12-54-47.log", "13-52-28.log"], [2000, 4000], ("age > 1 hour",), ["13-52-28.log"]),  # one file should be deleted
+            (["12-54-47.log", "13-52-28.log"], [1000, 2000], ("age > 1 hour",), []),  # No files should be deleted
+            (["12-54-47.log"], [1000], ("age > 1 hour",), []),  # No files to delete
+        ],
+        ids=[
+            "nb_files_condition_files",
+            "nb_files_condition_no_files",
+            "nb_files_condition_no_files_to_delete",
+            "age_condition_files",
+            "age_condition_no_files",
+            "age_condition_no_files_to_delete",
+        ],
+    )
+    def test_delete_excess_files(self, mock_time, mock_getctime, mock_listdir, mock_remove, files, file_ages, delete_condition, expected_files_to_delete, setup_folder):
+        folder, schema, switch_condition, _ = setup_folder
+        mock_listdir.return_value = files
+        mock_getctime.side_effect = [5000 - age for age in file_ages for _ in range(2)]
+        mock_time.return_value = 5000  # Mocked current time
 
         # Arrange
         writer = WriteToFile(str(folder), schema, switch_condition, delete_condition)
@@ -495,9 +565,11 @@ class TestWriteToFile:
         writer._WriteToFile__delete_excess_files()
 
         # Assert
-        assert mock_remove.call_count == 2  # Ensure at least one file was deleted
-        mock_remove.assert_any_call(os.path.join(str(folder), "12-00-00.log"))  # Oldest file should be deleted
-        mock_remove.assert_any_call(os.path.join(str(folder), "12-01-00.log"))
+        for file in expected_files_to_delete:
+            mock_remove.assert_any_call(os.path.join(str(folder), file))
+        if not expected_files_to_delete:
+            mock_remove.assert_not_called()
+
 
     @patch("builtins.open", new_callable=mock_open)
     @patch("gamuLogger.targets.WriteToFile._WriteToFile__is_outdated", return_value=True)

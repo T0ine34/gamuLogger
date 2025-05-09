@@ -130,12 +130,12 @@ class TestConfigArgparse:
     @pytest.mark.parametrize(
         "allow_other_targets",
         [
-            (True,),  # Allow other targets
-            (False,), # Do not allow other targets
+            True,  # Allow other targets
+            False, # Do not allow other targets
         ],
         ids=["allow_other_targets", "do_not_allow_other_targets"]
     )
-    def test_config_argparse(self, allow_other_targets):
+    def test_config_argparse(self, allow_other_targets : bool):
         # Arrange
         parser = argparse.ArgumentParser()
 
@@ -151,14 +151,17 @@ class TestConfigArgparse:
         assert actions["quiet"].default == 0
         assert actions["level"].default == "info"
         assert actions["level"].type is validate_level
+        
+        assert "module_level" in actions
+        assert actions["module_level"].default == []
+        assert actions["module_level"].type is validate_module_level
 
         if allow_other_targets:
             assert "log_file" in actions
-            assert "module_level" in actions
             assert actions["log_file"].default == []
             assert actions["log_file"].type is validate_log_file
-            assert actions["module_level"].default == []
-            assert actions["module_level"].type is validate_module_level
+        else:
+            assert "log_file" not in actions
 
 
 class TestConfigLogger:
@@ -232,6 +235,69 @@ class TestConfigLogger:
 
         for file, level in log_file:
             add_target_mock.assert_any_call(Target.from_file(file), level)
+
+    @pytest.mark.parametrize(
+        "verbose, quiet, level, module_level",
+        [
+            (0, 0, Levels.INFO, []),  # Default level
+            (1, 0, Levels.INFO, []),  # Verbose level 1
+            (2, 0, Levels.INFO, []),  # Verbose level 2
+            (0, 1, Levels.INFO, []),  # Quiet level 1
+            (0, 2, Levels.INFO, []),  # Quiet level 2
+            (0, 3, Levels.INFO, []),  # Quiet level 3, FATAL
+            (0, 4, Levels.INFO, []),  # Quiet level 4, NONE
+            (0, 0, Levels.DEBUG, []),  # Level DEBUG
+            (0, 0, Levels.WARNING, []), # Level WARNING
+            (0, 0, Levels.INFO, [("module1", Levels.DEBUG)]),  # Module level
+            (0, 0, Levels.INFO, [("all", Levels.DEBUG)]), # Default module level
+        ],
+        ids=["default_level", "verbose_1", "verbose_2", "quiet_1", "quiet_2", "quiet_3", "quiet_4", "level_debug", "level_warning", "module_level", "all_module_level"]
+    )
+    def test_config_logger_no_log_file(self, verbose, quiet, level, module_level, monkeypatch):
+        # Arrange
+        args = argparse.Namespace(
+            verbose=verbose, quiet=quiet, level=level, module_level=module_level
+        )
+        set_level_mock = MagicMock()
+        set_module_level_mock = MagicMock()
+        set_default_module_level_mock = MagicMock()
+        add_target_mock = MagicMock()
+
+        monkeypatch.setattr(Logger, "set_level", set_level_mock)
+        monkeypatch.setattr(Logger, "set_module_level", set_module_level_mock)
+        monkeypatch.setattr(Logger, "set_default_module_level", set_default_module_level_mock)
+        monkeypatch.setattr(Logger, "add_target", add_target_mock)
+
+        # Act
+        config_logger(args)
+
+        # Assert
+        if verbose > 0:
+            if verbose == 1:
+                expected_level = Levels.DEBUG
+            elif verbose == 2:
+                expected_level = Levels.TRACE
+            set_level_mock.assert_called_once_with("stdout", expected_level)
+
+        elif quiet > 0:
+            if quiet == 1:
+                expected_level = Levels.WARNING
+            elif quiet == 2:
+                expected_level = Levels.ERROR
+            elif quiet == 3:
+                expected_level = Levels.FATAL
+            elif quiet == 4:
+                expected_level = Levels.NONE
+            set_level_mock.assert_called_once_with("stdout", expected_level)
+        else:
+            set_level_mock.assert_called_once_with("stdout", level)
+
+        for module, level in module_level:
+            if module == "all":
+                set_default_module_level_mock.assert_called_once_with(level)
+            else:
+                set_module_level_mock.assert_any_call(module, level)
+
 
     @pytest.mark.parametrize(
         "verbose, quiet",
