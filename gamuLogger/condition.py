@@ -49,6 +49,18 @@ class Condition(ABC):
         """
         raise NotImplementedError("Subclasses should implement this method.") #pragma: no cover
 
+    @abstractmethod
+    def __str__(self) -> str:
+        """
+        String representation of the condition.
+        """
+        raise NotImplementedError("Subclasses should implement this method.")
+    
+    def __repr__(self) -> str:
+        """
+        String representation of the condition.
+        """
+        return self.__str__()
 
 class AgeCondition(Condition):
     """
@@ -107,6 +119,11 @@ class AgeCondition(Condition):
         """
         return self.operators[self.__operator](age, self.__age_in_seconds)
 
+    def __str__(self) -> str:
+        """
+        String representation of the condition.
+        """
+        return f"{self.__operator} {self.__age_in_seconds} seconds"
 
 class SizeCondition(Condition):
     """
@@ -165,6 +182,11 @@ class SizeCondition(Condition):
         """
         return self.operators[self.__operator](size, self.__size_in_bytes)
 
+    def __str__(self) -> str:
+        """
+        String representation of the condition.
+        """
+        return f"{self.__operator} {self.__size_in_bytes} bytes"
 
 class NbFilesCondition(Condition):
     """
@@ -220,6 +242,11 @@ class NbFilesCondition(Condition):
         """
         return self.operators[self.__operator](nb_files, self.__nb_files)
 
+    def __str__(self) -> str:
+        """
+        String representation of the condition.
+        """
+        return f"{self.__operator} {self.__nb_files} files"
 
 def condition_factory(string : str) -> Condition:
     """
