@@ -1,6 +1,13 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
+
+# ###############################################################################################
+#                                   PYLINT
 # pyright: reportUnusedImport=false
+# pylint: disable=unused-import
+# pylint: disable=invalid-name
+# pylint: disable=line-too-long
+# ###############################################################################################
 
 """
 GamuLogger - A simple and powerful logging library for Python

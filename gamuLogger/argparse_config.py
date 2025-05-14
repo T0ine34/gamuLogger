@@ -3,12 +3,13 @@
 
 # ###############################################################################################
 #                                   PYLINT
-# Disable C0301 = Line too long (80 chars by line is not enough)
 # pylint: disable=line-too-long
 # ###############################################################################################
 
 """
-configuration for argparse
+GamuLogger - A simple and powerful logging library for Python
+
+Antoine Buirey 2025
 """
 
 import argparse
@@ -146,9 +147,7 @@ def config_logger(args : argparse.Namespace):
     """
     # Set the logging level
     if args.verbose > 2:
-        raise argparse.ArgumentTypeError(
-            "Verbose level must be between 0 and 2 (inclusive)."
-        )
+        raise argparse.ArgumentTypeError("Verbose level must be between 0 and 2 (inclusive).")
     elif args.verbose == 2:
         level = Levels.TRACE
     elif args.verbose == 1:
@@ -163,10 +162,7 @@ def config_logger(args : argparse.Namespace):
     elif args.quiet == 4:
         level = Levels.NONE
     elif args.quiet > 4:
-        raise argparse.ArgumentTypeError(
-
-            "Quiet level must be between 0 and 4 (inclusive)."
-        )
+        raise argparse.ArgumentTypeError("Quiet level must be between 0 and 4 (inclusive).")
     else:
         level = args.level
 

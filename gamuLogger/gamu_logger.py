@@ -3,7 +3,6 @@
 
 # ###############################################################################################
 #                                   PYLINT
-# Disable C0301 = Line too long (80 chars by line is not enough)
 # pylint: disable=line-too-long
 # ###############################################################################################
 
@@ -16,7 +15,7 @@ Antoine Buirey 2025
 
 import threading
 from json import dumps
-from typing import Any, Callable
+from typing import Callable
 
 from .config import Config
 from .custom_types import COLORS, Callerinfo, Levels, Message
@@ -62,9 +61,6 @@ class Logger:
             module_level = Module.get_level(name)
         else:
             module_level = Module.get_default_level()
-
-        # Determine the effective level for comparison
-        # effective_level = Levels.higher(module_level, target["level"])
 
         # Check if the message level is below the effective level
         if msg_level < module_level or msg_level < target["level"]:

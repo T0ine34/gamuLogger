@@ -1,3 +1,17 @@
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+
+# ###############################################################################################
+#                                   PYLINT
+# pylint: disable=line-too-long
+# ###############################################################################################
+
+"""
+GamuLogger - A simple and powerful logging library for Python
+
+Antoine Buirey 2025
+"""
+
 from abc import ABC, abstractmethod
 import re
 from typing import Any, Callable
@@ -55,7 +69,7 @@ class Condition(ABC):
         String representation of the condition.
         """
         raise NotImplementedError("Subclasses should implement this method.")
-    
+
     def __repr__(self) -> str:
         """
         String representation of the condition.

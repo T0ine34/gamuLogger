@@ -1,3 +1,17 @@
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+
+# ###############################################################################################
+#                                   PYLINT
+# pylint: disable=line-too-long
+# ###############################################################################################
+
+"""
+GamuLogger - A simple and powerful logging library for Python
+
+Antoine Buirey 2025
+"""
+
 from typing import Callable, Any, TypeVar
 from datetime import datetime
 
@@ -6,15 +20,6 @@ from .utils import get_caller_info, COLORS
 from .custom_types import Message
 
 T = TypeVar('T')
-
-# def trace(msg : Message):
-#     """
-#     Print a trace message to the standard output, in blue color\n
-
-#     Args:
-#         msg (Message): The message to print
-#     """
-#     Logger.trace(msg, get_caller_info())
 
 trace : Callable[[Message], None] = Logger.trace
 debug : Callable[[Message], None] = Logger.debug

@@ -3,12 +3,13 @@
 
 # ###############################################################################################
 #                                   PYLINT
-# Disable C0301 = Line too long (80 chars by line is not enough)
 # pylint: disable=line-too-long
 # ###############################################################################################
 
 """
-Regex patterns
+GamuLogger - A simple and powerful logging library for Python
+
+Antoine Buirey 2025
 """
 
 import re
