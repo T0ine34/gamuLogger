@@ -13,3 +13,5 @@ build/
 *.egg-info/
 
 test-report.xml
+coverage.xml
+*.coverage

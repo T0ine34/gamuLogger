@@ -20,7 +20,7 @@ keywords = [
   "gamuLogger",
   "trace"
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.12"
 classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.8",

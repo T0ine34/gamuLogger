@@ -1,7 +1,14 @@
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
+
+# ###############################################################################################
+#                                   PYLINT
+# pylint: disable=line-too-long
+# ###############################################################################################
 
 """
 GamuLogger - A simple and powerful logging library for Python
+
 Antoine Buirey 2025
 """
 
