@@ -91,6 +91,13 @@ class TestAgeCondition:
         assert condition._AgeCondition__operator == operator
         assert condition._AgeCondition__age_in_seconds == string2seconds(f"{value} {unit}")
 
+    def test_str(self):
+        condition = AgeCondition(">", 10, "seconds")
+        assert str(condition) == "> 10 seconds"
+    
+    def test_repr(self):
+        condition = AgeCondition(">", 10, "seconds")
+        assert repr(condition) == "AgeCondition(operator='>', value='10', unit='seconds')"
 
 class TestSizeCondition:
     @pytest.mark.parametrize(
@@ -255,6 +262,13 @@ class TestSizeCondition:
         with pytest.raises(ValueError, match=f"Invalid size condition: {string}"):
             SizeCondition.from_string(string)
 
+    def test_str(self):
+        condition = SizeCondition(">", 10, "B")
+        assert str(condition) == "> 10 bytes"
+    
+    def test_repr(self):
+        condition = SizeCondition(">", 10, "B")
+        assert repr(condition) == "SizeCondition(operator='>', value='10', unit='bytes')"
 
 class TestNbFilesCondition:
     @pytest.mark.parametrize(
@@ -384,3 +398,11 @@ class TestConditionFactory:
     def test_invalid_conditions(self, string):
         with pytest.raises(ValueError):
             condition_factory(string)
+
+    def test_str(self):
+        condition = NbFilesCondition(">", 10)
+        assert str(condition) == "> 10 files"
+    
+    def test_repr(self):
+        condition = NbFilesCondition(">", 10)
+        assert repr(condition) == "NbFilesCondition(operator='>', value='10', unit='files')"

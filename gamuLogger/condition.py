@@ -68,13 +68,14 @@ class Condition(ABC):
         """
         String representation of the condition.
         """
-        raise NotImplementedError("Subclasses should implement this method.")
+        raise NotImplementedError("Subclasses should implement this method.") #pragma: no cover
 
+    @abstractmethod
     def __repr__(self) -> str:
         """
         String representation of the condition.
         """
-        return self.__str__()
+        raise NotImplementedError("Subclasses should implement this method.") #pragma: no cover
 
 class AgeCondition(Condition):
     """
@@ -139,6 +140,12 @@ class AgeCondition(Condition):
         """
         return f"{self.__operator} {self.__age_in_seconds} seconds"
 
+    def __repr__(self) -> str:
+        """
+        String representation of the condition.
+        """
+        return f"{self.__class__.__name__}(operator='{self.__operator}', value='{self.__age_in_seconds}', unit='seconds')"
+
 class SizeCondition(Condition):
     """
     A condition that checks if the size is greater than a specified value.
@@ -202,6 +209,12 @@ class SizeCondition(Condition):
         """
         return f"{self.__operator} {self.__size_in_bytes} bytes"
 
+    def __repr__(self) -> str:
+        """
+        String representation of the condition.
+        """
+        return f"{self.__class__.__name__}(operator='{self.__operator}', value='{self.__size_in_bytes}', unit='bytes')"
+
 class NbFilesCondition(Condition):
     """
     A condition that checks if the number of files is greater than a specified value.
@@ -261,6 +274,13 @@ class NbFilesCondition(Condition):
         String representation of the condition.
         """
         return f"{self.__operator} {self.__nb_files} files"
+
+    def __repr__(self) -> str:
+        """
+        String representation of the condition.
+        """
+        return f"{self.__class__.__name__}(operator='{self.__operator}', value='{self.__nb_files}', unit='files')"
+
 
 def condition_factory(string : str) -> Condition:
     """
