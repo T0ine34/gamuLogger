@@ -99,20 +99,6 @@ class TestSplitLongString:
         assert actual_output == expected_output
 
     @pytest.mark.parametrize(
-        "string, length",
-        [
-            ("Hello World", 2), # id: word_longer_than_length
-            ("HelloWorld", 8), # id: no_spaces
-        ],
-    )
-    def test_split_long_string_error_cases(self, string, length):
-
-        # Act and Assert
-        with pytest.raises(ValueError):
-            split_long_string(string, length)
-
-
-    @pytest.mark.parametrize(
         "string, length, expected_output",
         [
             ("", 5, ""), # id: empty_string

@@ -14,14 +14,15 @@ Antoine Buirey 2025
 
 import inspect
 import os
+import re
 import sys
 from datetime import datetime
 from json import JSONEncoder
 from typing import Any
-import re
 
 from .custom_types import COLORS, Callerinfo, Stack
-from .regex import RE_YEAR, RE_MONTH, RE_DAY, RE_HOUR, RE_MINUTE, RE_SECOND, RE_PID, RE_DATE, RE_TIME, RE_DATETIME
+from .regex import (RE_DATE, RE_DATETIME, RE_DAY, RE_HOUR, RE_MINUTE, RE_MONTH,
+                    RE_PID, RE_SECOND, RE_TIME, RE_YEAR)
 
 
 def get_caller_file_path(stack : Stack|None = None) -> str:
@@ -91,8 +92,15 @@ def split_long_string(string: str, length: int = 100) -> str:
         current_line = []
         for word in words:
             if len(word) > length:
-                raise ValueError("A word is longer than the maximum length")
-            if len(' '.join(current_line)) + len(word) + (1 if current_line else 0) > length:
+                # Split the long word into chunks of 'length'
+                for i in range(0, len(word), length):
+                    chunk = word[i:i+length]
+                    if len(' '.join(current_line)) + len(chunk) + (1 if current_line else 0) > length:
+                        result.append(' '.join(current_line))
+                        current_line = [chunk]
+                    else:
+                        current_line.append(chunk)
+            elif len(' '.join(current_line)) + len(word) + (1 if current_line else 0) > length:
                 result.append(' '.join(current_line))
                 current_line = [word]
             else:
