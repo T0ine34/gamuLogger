@@ -2,7 +2,7 @@
 SOURCES = $(wildcard gamuLogger/*.py)
 TESTS = $(wildcard tests/*.py)
 
-TEMP_DIR = build
+TEMP_DIR = _build
 
 VERSION = 0.1.0
 

@@ -26,6 +26,11 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
+    - name: install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest coverage build
+
     - name: build
       run: make tests VERSION=${{ github.event.release.tag_name }}
 
@@ -35,7 +40,7 @@ jobs:
       with:
         report_paths: 'test-report.xml'
         include_passed: true
-    
+
     - name: cobertura-report
       if: success() || failure()
       uses: 5monkeys/cobertura-action@v14
