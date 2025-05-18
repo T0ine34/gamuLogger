@@ -3,24 +3,26 @@
 
 # ###############################################################################################
 #                                   PYLINT
-# Disable C0301 = Line too long (80 chars by line is not enough)
 # pylint: disable=line-too-long
 # ###############################################################################################
 
 """
-Utility functions for the logger module
+GamuLogger - A simple and powerful logging library for Python
+
+Antoine Buirey 2025
 """
 
 import inspect
 import os
+import re
 import sys
 from datetime import datetime
 from json import JSONEncoder
 from typing import Any
-import re
 
 from .custom_types import COLORS, Callerinfo, Stack
-from .regex import RE_YEAR, RE_MONTH, RE_DAY, RE_HOUR, RE_MINUTE, RE_SECOND, RE_PID, RE_DATE, RE_TIME, RE_DATETIME
+from .regex import (RE_DATE, RE_DATETIME, RE_DAY, RE_HOUR, RE_MINUTE, RE_MONTH,
+                    RE_PID, RE_SECOND, RE_TIME, RE_YEAR)
 
 
 def get_caller_file_path(stack : Stack|None = None) -> str:
@@ -90,8 +92,15 @@ def split_long_string(string: str, length: int = 100) -> str:
         current_line = []
         for word in words:
             if len(word) > length:
-                raise ValueError("A word is longer than the maximum length")
-            if len(' '.join(current_line)) + len(word) + (1 if current_line else 0) > length:
+                # Split the long word into chunks of 'length'
+                for i in range(0, len(word), length):
+                    chunk = word[i:i+length]
+                    if len(' '.join(current_line)) + len(chunk) + (1 if current_line else 0) > length:
+                        result.append(' '.join(current_line))
+                        current_line = [chunk]
+                    else:
+                        current_line.append(chunk)
+            elif len(' '.join(current_line)) + len(word) + (1 if current_line else 0) > length:
                 result.append(' '.join(current_line))
                 current_line = [word]
             else:
@@ -190,19 +199,18 @@ def string2seconds(string : str) -> int:
     parts = string.split()
     total_seconds = 0
 
+    if not len(parts) % 2 == 0:
+        raise ValueError("Invalid input format. Expected 'value unit' pairs.")
     for i in range(0, len(parts), 2):
-        if not parts[i].isdigit():
-            raise ValueError(f"Invalid value: {parts[i]}")
-        if i + 1 >= len(parts):
-            raise ValueError("Missing unit after value")
-        if not parts[i + 1] in time_units and not parts[i + 1][:-1] in time_units:
-            raise ValueError(f"Unknown time unit: {parts[i + 1]}")
-        value = int(parts[i])
-        unit = parts[i + 1].lower()
+        value, unit = parts[i], parts[i + 1].lower()
+        if not value.isdigit():
+            raise ValueError(f"Invalid value: {value}")
         if unit.endswith('s'):
-            unit = unit[:-1]  # Remove the trailing 's' for plural units
-        if unit in time_units:
-            total_seconds += value * time_units[unit]
+            unit = unit[:-1]
+        if unit not in time_units:
+            raise ValueError(f"Unknown time unit: {unit}")
+
+        total_seconds += int(value) * time_units[unit]
 
     return total_seconds
 

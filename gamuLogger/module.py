@@ -3,12 +3,13 @@
 
 # ###############################################################################################
 #                                   PYLINT
-# Disable C0301 = Line too long (80 chars by line is not enough)
 # pylint: disable=line-too-long
 # ###############################################################################################
 
 """
-Module class for the logger system.
+GamuLogger - A simple and powerful logging library for Python
+
+Antoine Buirey 2025
 """
 
 from .custom_types import Levels
@@ -21,7 +22,7 @@ class Module:
     """
     __instances : dict[tuple[str|None, str|None], 'Module'] = {}
     __levels : dict[str, Levels] = {}
-    __default_level : Levels = Levels.INFO
+    __default_level : Levels = Levels.TRACE # if the module level is not set, it will use this level
     def __init__(self,
                  name : str,
                  parent : 'Module|None' = None,

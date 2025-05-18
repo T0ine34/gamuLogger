@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.12", "3.13"]
 
     steps:
 
@@ -35,6 +35,16 @@ jobs:
       with:
         report_paths: 'test-report.xml'
         include_passed: true
+    
+    - name: cobertura-report
+      if: success() || failure()
+      uses: 5monkeys/cobertura-action@v14
+      with:
+        path: coverage.xml
+        minimum_coverage: 90
+        fail_below_threshold: true
+        report_name: Coverage Report (${{ matrix.python-version }})
+        skip_covered: false
 
 
   build:

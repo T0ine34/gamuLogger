@@ -3,19 +3,20 @@
 
 # ###############################################################################################
 #                                   PYLINT
-# Disable C0301 = Line too long (80 chars by line is not enough)
 # pylint: disable=line-too-long
 # ###############################################################################################
 
 """
-Regex patterns
+GamuLogger - A simple and powerful logging library for Python
+
+Antoine Buirey 2025
 """
 
 import re
 
-RE_AGE_CONDITION = re.compile(r"age\s*(?P<operator>>|>=|<|<=)\s*(?P<value>\d+)\s*(?P<unit>(?:hour|minute|second|day|week|month|year)s?)")
-RE_SIZE_CONDITION = re.compile(r"size\s*(?P<operator>>|>=|<|<=)\s*(?P<value>\d+)\s*(?P<unit>(?:KB|MB|GB|TB)s?)")
-RE_NB_FILES_CONDITION = re.compile(r"nb_files\s*(?P<operator>>|>=|<|<=)\s*(?P<value>\d+)")
+RE_AGE_CONDITION = re.compile(r"(?:age\s*)?(?P<operator>>|>=|<|<=|==|!=)\s*(?P<value>\d+)\s*(?P<unit>(?:hour|minute|second|day|week|month|year)s?)")
+RE_SIZE_CONDITION = re.compile(r"(?:size\s*)?(?P<operator>>|>=|<|<=|==|!=)\s*(?P<value>\d+)\s*(?P<unit>(?:KB|MB|GB|TB)s?)")
+RE_NB_FILES_CONDITION = re.compile(r"(?:nb_files\s*)?(?P<operator>>|>=|==|!=)\s*(?P<value>\d+)")
 
 RE_YEAR     = r"\d{4}"
 RE_MONTH    = r"[01]\d"
