@@ -23,10 +23,9 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from gamuLogger.gamu_logger import (Levels, Logger, Module)
-from gamuLogger.function import (chrono, debug,
-                                debug_func, error, info, message,
-                                trace_func, warning)
+from gamuLogger.function import (chrono, debug, debug_func, error, info,
+                                 message, trace_func, warning)
+from gamuLogger.gamu_logger import Levels, Logger, Module
 from gamuLogger.targets import Target, TerminalTarget
 
 
@@ -35,12 +34,12 @@ class Test_Logger:
     @pytest.mark.parametrize(
         "level, expected",
         [
-            (Logger.trace,    r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  TRACE  .*\] This is a message"),
-            (Logger.debug,    r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  DEBUG  .*\] This is a message"),
-            (Logger.info,     r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  INFO   .*\] This is a message"),
-            (Logger.warning,  r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.* WARNING .*\] This is a message"),
-            (Logger.error,    r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  ERROR  .*\] This is a message"),
-            (Logger.fatal,    r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  FATAL  .*\] This is a message")
+            (Logger.trace,    r".*\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  TRACE  .*\] This is a message"),
+            (Logger.debug,    r".*\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  DEBUG  .*\] This is a message"),
+            (Logger.info,     r".*\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  INFO   .*\] This is a message"),
+            (Logger.warning,  r".*\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.* WARNING .*\] This is a message"),
+            (Logger.error,    r".*\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  ERROR  .*\] This is a message"),
+            (Logger.fatal,    r".*\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  FATAL  .*\] This is a message")
         ],
         ids=[
             "TRACE",
@@ -83,7 +82,7 @@ class Test_Logger:
         captured = capsys.readouterr()
         result = captured.out
         print(result)
-        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  INFO   .*\] This is a message\n                                \| This is a message", result)
+        assert re.match(r".*\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  INFO   .*\] This is a message\n                                \| This is a message", result)
 
     def test_module(self, capsys):
         Logger.reset()
@@ -95,7 +94,7 @@ class Test_Logger:
         captured = capsys.readouterr()
         result = captured.out
         print(result)
-        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  INFO   .*\] \[ .*      test     .* \] This is a message", result)
+        assert re.match(r".*\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  INFO   .*\] \[ .*      test     .* \] This is a message", result)
 
     def test_sub_module(self, capsys):
         Logger.reset()
@@ -110,7 +109,7 @@ class Test_Logger:
         captured = capsys.readouterr()
         result = captured.out
         print(result)
-        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  INFO   .*\] \[ .*     test     .* \] \[.*    sub    .* \] This is a message", result)
+        assert re.match(r".*\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  INFO   .*\] \[ .*     test     .* \] \[.*    sub    .* \] This is a message", result)
 
     def test_sub_sub_module(self, capsys):
         Logger.reset()
@@ -128,7 +127,7 @@ class Test_Logger:
         captured = capsys.readouterr()
         result = captured.out
         print(result)
-        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  INFO   .*\] \[ .*     test     .* \] \[.*    sub    .* \] \[.*    sub    .* \] This is a message", result)
+        assert re.match(r".*\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  INFO   .*\] \[ .*     test     .* \] \[.*    sub    .* \] \[.*    sub    .* \] This is a message", result)
 
     def test_multiline_module(self, capsys):
         Logger.reset()
@@ -140,7 +139,7 @@ class Test_Logger:
         captured = capsys.readouterr()
         result = captured.out
         print(result)
-        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  INFO   .*\] \[ .*      test     .* \] This is a message\n                                                    \| This is a message", result)
+        assert re.match(r".*\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  INFO   .*\] \[ .*      test     .* \] This is a message\n                                                    \| This is a message", result)
 
     def test_too_long_module_name(self):
         Logger.reset()
@@ -163,7 +162,7 @@ class Test_Logger:
         captured = capsys.readouterr()
         result = captured.out
         print(result)
-        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  DEBUG  .*\] Function test took 0:00:01.\d{6} to execute", result)
+        assert re.match(r".*\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  DEBUG  .*\] Function test took 0:00:01.\d{6} to execute", result)
 
     def test_trace_func(self, capsys):
         Logger.reset()
@@ -180,10 +179,10 @@ class Test_Logger:
         result = captured.out #type: str
         print(result)
         result = result.split("\n") #type: list[str]
-        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  TRACE  .*\] Calling test with", result[0])
+        assert re.match(r".*\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  TRACE  .*\] Calling test with", result[0])
         assert re.match(r"                                \| args: \(\)", result[1])
         assert re.match(r"                                \| kwargs: {}", result[2])
-        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  TRACE  .*\] Function test took 0:00:00 to execute and returned \"This is a trace function\"", result[3])
+        assert re.match(r".*\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  TRACE  .*\] Function test took 0:00:00 to execute and returned \"This is a trace function\"", result[3])
 
     def test_debug_func(self, capsys):
         Logger.reset()
@@ -200,10 +199,10 @@ class Test_Logger:
         result = captured.out #type: str
         print(result)
         result = result.split("\n") #type: list[str]
-        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  DEBUG  .*\] Calling test with", result[0])
+        assert re.match(r".*\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  DEBUG  .*\] Calling test with", result[0])
         assert re.match(r"                                \| args: \(\)", result[1])
         assert re.match(r"                                \| kwargs: {}", result[2])
-        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  DEBUG  .*\] Function test returned \"This is a debug function\"", result[3])
+        assert re.match(r".*\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  DEBUG  .*\] Function test returned \"This is a debug function\"", result[3])
 
     def test_set_level(self, capsys):
         Logger.reset()
@@ -220,7 +219,7 @@ class Test_Logger:
         captured = capsys.readouterr()
         result = captured.out
         print(result)
-        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  DEBUG  .*\] This is a debug message that should be displayed", result)
+        assert re.match(r".*\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  DEBUG  .*\] This is a debug message that should be displayed", result)
 
     def test_fileTarget(self):
         Logger.reset()
@@ -344,7 +343,7 @@ class Test_Logger:
 
     def test_calling_constructor(self):
         assert Logger() is Logger.get_instance()
-        
+
     def test_show_process_name(self, capsys):
         Logger.reset()
         Module.clear()
@@ -355,7 +354,7 @@ class Test_Logger:
         captured = capsys.readouterr()
         result = captured.out
         print(result)
-        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*\w+.*\] \[.*  INFO   .*\] This is a message with process name", result)
+        assert re.match(r".*\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*\w+.*\] \[.*  INFO   .*\] This is a message with process name", result)
 
     def test_show_thread_name(self, capsys):
         Logger.reset()
@@ -367,7 +366,7 @@ class Test_Logger:
         captured = capsys.readouterr()
         result = captured.out
         print(result)
-        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*\w+.*\] \[.*  INFO   .*\] This is a message with thread name", result)
+        assert re.match(r".*\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*\w+.*\] \[.*  INFO   .*\] This is a message with thread name", result)
 
 
     def test_show_process_name_file_target(self):
@@ -382,7 +381,7 @@ class Test_Logger:
                 result = file.read()
             print(result)
             assert re.match(r"\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\] \[.*\w+.*\] \[  INFO   \] This is a message with process name", result)
-    
+
     def test_show_thread_name_file_target(self):
         Logger.reset()
         Module.clear()
@@ -412,11 +411,11 @@ class Test_Logger:
     @pytest.mark.parametrize(
         "input_data, expected_pattern",
         [
-            ({"key": "value"}, r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  INFO   .*\] \{\n\s+|\s+'key': 'value'\n\s+|\s+\}"),
-            ([1, 2, 3], r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  INFO   .*\] \[\n\s+|\s+1,\n\s+|\s+2,\n\s+|\s+3\n\s+|\s+\]"),
-            (42, r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  INFO   .*\] 42"),
-            (3.14, r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  INFO   .*\] 3.14"),
-            (None, r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  INFO   .*\] null"),
+            ({"key": "value"}, r".*\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  INFO   .*\] \{\n\s+|\s+'key': 'value'\n\s+|\s+\}"),
+            ([1, 2, 3], r".*\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  INFO   .*\] \[\n\s+|\s+1,\n\s+|\s+2,\n\s+|\s+3\n\s+|\s+\]"),
+            (42, r".*\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  INFO   .*\] 42"),
+            (3.14, r".*\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  INFO   .*\] 3.14"),
+            (None, r".*\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  INFO   .*\] null"),
         ],
         ids=["dict", "list", "int", "float", "none"]
     )
@@ -455,27 +454,27 @@ class Test_Logger:
         # Set a module and log a message
         Logger.set_module("test_module")
         info("This is a message from test_module")
-        
+
         # Capture the output
         captured = capsys.readouterr()
         result = captured.out
-        
+
         print(result, end="")
-        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  INFO   .*\] \[ .*  test_module  .*\ ] This is a message from test_module", result)
-        
+        assert re.match(r".*\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  INFO   .*\] \[ .*  test_module  .*\ ] This is a message from test_module", result)
+
         # Delete the module
         Logger.set_module("")
-        
-        
+
+
         # Log another message without a module
         info("This is a message without a module")
-        
+
         captured = capsys.readouterr()
         result = captured.out.rsplit("\n")[-2]  # Get the last line of output
-        
+
         print(result, end="")
-        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  INFO   .*\] This is a message without a module", result)
-        
+        assert re.match(r".*\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  INFO   .*\] This is a message without a module", result)
+
     def test_add_target_with_target_object(self, capsys):
         Logger.reset()
         Module.clear()
@@ -496,7 +495,7 @@ class Test_Logger:
         print(result)
 
         # Assert the message is logged correctly
-        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  INFO   .*\] This is a message using a custom Target object", result)
+        assert re.match(r".*\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  INFO   .*\] This is a message using a custom Target object", result)
 
 
     def test_remove_target(self, capsys):
@@ -514,7 +513,7 @@ class Test_Logger:
         # Log a message to ensure the target is working
         info("This is a message before removing the target")
         assert len(out) == 1
-        assert re.match(r"\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  INFO   .*\] This is a message before removing the target", out[0])
+        assert re.match(r".*\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  INFO   .*\] This is a message before removing the target", out[0])
 
         # Remove the target
         Logger.remove_target(target_name)

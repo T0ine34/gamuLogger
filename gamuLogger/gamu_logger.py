@@ -25,6 +25,7 @@ from .utils import (CustomEncoder, colorize, get_caller_info,
                     get_executable_formatted, get_time, replace_newline,
                     split_long_string)
 
+
 class Logger:
     """
     Logger class to manage the logging system of an application
@@ -65,7 +66,8 @@ class Logger:
         # Check if the message level is below the effective level
         if msg_level < module_level or msg_level < target["level"]:
             return
-        result = ""
+
+        result = f"{COLORS.RESET}" if target.type == Target.Type.TERMINAL else ""
 
         # add the current time
         result += self.__log_element_time(target)
@@ -133,13 +135,13 @@ class Logger:
             indent += 20 * len(Module.get(*caller_info).get_complete_path())
         return f" {replace_newline(msg, indent)}"
 
-    def __print_message_in_target(self, msg : str, color : COLORS, target : Target):
+    def __print_message_in_target(self, msg : Message, color : COLORS, target : Target):
         if target.type == Target.Type.TERMINAL:
             target(f"{color}{msg}{COLORS.RESET}\n")
         else:
-            target(msg + "\n")
+            target(str(msg) + "\n")
 
-    def __print_message(self, msg : str, color : COLORS): #pylint: disable=W0238
+    def __print_message(self, msg : Message, color : COLORS): #pylint: disable=W0238
         for target in Target.list():
             self.__print_message_in_target(msg, color, target)
 

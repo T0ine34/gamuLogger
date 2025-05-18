@@ -20,7 +20,7 @@ class Config:
     Configuration class for the GamuLogger.
     """
 
-    def __init__(self, **default : dict[str, Any]) -> None:
+    def __init__(self, **default : Any) -> None:
         self.__default = default
         self.__conf = self.__default.copy()
 
