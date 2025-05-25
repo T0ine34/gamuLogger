@@ -13,6 +13,7 @@ Antoine Buirey 2025
 """
 
 
+import os
 import threading
 from json import dumps
 from typing import Callable
@@ -43,6 +44,7 @@ class Logger:
         self.config = Config(
             show_process_name = False,
             show_threads_name = False,
+            show_pid = False
         )
 
         #configuring default target
@@ -75,6 +77,9 @@ class Logger:
         # add the process name if needed
         result += self.__log_element_process_name(target)
 
+        # add the process ID if needed
+        result += self.__log_element_pid(target)
+
         # add the thread name if needed
         result += self.__log_element_thread_name(target)
 
@@ -100,6 +105,14 @@ class Logger:
             if target.type == Target.Type.TERMINAL:
                 return f" [{COLORS.CYAN}{get_executable_formatted().center(20)}{COLORS.RESET}]"
             return f" [{get_executable_formatted().center(20)}]"
+        return ""
+
+    def __log_element_pid(self, target : Target) -> str:
+        if self.config['show_pid']:
+            pid = f"{os.getpid():^8d}"
+            if target.type == Target.Type.TERMINAL:
+                return f" [ {COLORS.MAGENTA}{pid}{COLORS.RESET} ]"
+            return f" [ {pid} ]"
         return ""
 
     def __log_element_thread_name(self, target : Target) -> str:
@@ -320,6 +333,15 @@ class Logger:
             value (bool): If True, the process name will be shown. If False, it will not be shown.
         """
         cls.get_instance().config['show_process_name'] = value
+
+    @classmethod
+    def show_pid(cls, value : bool = True):
+        """
+        Show the process ID in the log messages. This is useful to identify the process that generated the log message.
+        Args:
+            value (bool): If True, the process ID will be shown. If False, it will not be shown.
+        """
+        cls.get_instance().config['show_pid'] = value
 
     @classmethod
     def add_target(cls, target_func : Callable[[str], None] | str | Target | TerminalTarget, level : Levels = Levels.INFO) -> str:

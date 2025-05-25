@@ -369,6 +369,19 @@ class Test_Logger:
         assert re.match(r".*\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*\w+.*\] \[.*  INFO   .*\] This is a message with thread name", result)
 
 
+    def test_show_pid(self, capsys):
+        Logger.reset()
+        Module.clear()
+        Module.set_default_level(Levels.TRACE)
+        Logger.set_level("stdout", Levels.INFO)
+        Logger.show_pid(True)
+        info("This is a message with process ID")
+        captured = capsys.readouterr()
+        result = captured.out
+        print(result)
+        assert re.match(r".*\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*\d+.*\] \[.*  INFO   .*\] This is a message with process ID", result)
+
+
     def test_show_process_name_file_target(self):
         Logger.reset()
         Module.clear()
