@@ -141,11 +141,16 @@ class Logger:
     def __log_element_message(self, msg : Message, caller_info : Callerinfo) -> str:
         if not isinstance(msg, str):
             msg = dumps(msg, indent=4, cls=CustomEncoder)
-        msg = split_long_string(msg, 150)
         indent = 32
         if Module.exist(*caller_info):
             # add 20 for each module name
             indent += 20 * len(Module.get(*caller_info).get_complete_path())
+        if self.config['show_process_name']:
+            indent += 20
+        if self.config['show_pid']:
+            indent += 8
+        if self.config['show_threads_name']:
+            indent += 30
         return f" {replace_newline(msg, indent)}"
 
     def __print_message_in_target(self, msg : Message, color : COLORS, target : Target):
