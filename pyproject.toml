@@ -8,7 +8,7 @@ dynamic = ["version"]
 authors = [
   { name="Antoine Buirey", email="antoine.buirey@gmail.com" }
 ]
-description = "A logger in python, for python."
+description = "A Logging library for Python."
 license = "MIT"
 license-files = ["LICENSE"]
 readme = "readme.md"
