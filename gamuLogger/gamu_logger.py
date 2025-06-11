@@ -13,6 +13,7 @@ Antoine Buirey 2025
 """
 
 
+import multiprocessing as mp
 import os
 import threading
 from json import dumps
@@ -94,20 +95,21 @@ class Logger:
 
         target(result+"\n")
 
-    def __log_element_time(self, target : Target) -> str:
+    def __log_element_time(self, target : Target) -> str: # length : + 20
         if target.type == Target.Type.TERMINAL:
             return f"[{COLORS.BLUE}{get_time()}{COLORS.RESET}]"
         # if the target is a file, we don't need to color the output
         return f"[{get_time()}]"
 
-    def __log_element_process_name(self, target : Target) -> str:
+    def __log_element_process_name(self, target : Target) -> str: # length : + 25
         if self.config['show_process_name']:
+            name = mp.current_process().name.center(20)
             if target.type == Target.Type.TERMINAL:
-                return f" [{COLORS.CYAN}{get_executable_formatted().center(20)}{COLORS.RESET}]"
-            return f" [{get_executable_formatted().center(20)}]"
+                return f" [ {COLORS.CYAN}{name}{COLORS.RESET} ]"
+            return f" [ {name} ]"
         return ""
 
-    def __log_element_pid(self, target : Target) -> str:
+    def __log_element_pid(self, target : Target) -> str: # length : + 12
         if self.config['show_pid']:
             pid = f"{os.getpid():^8d}"
             if target.type == Target.Type.TERMINAL:
@@ -115,20 +117,20 @@ class Logger:
             return f" [ {pid} ]"
         return ""
 
-    def __log_element_thread_name(self, target : Target) -> str:
+    def __log_element_thread_name(self, target : Target) -> str: # length : + 25
         if self.config['show_threads_name']:
-            name = threading.current_thread().name.center(30)
+            name = threading.current_thread().name.center(20)
             if target.type == Target.Type.TERMINAL:
                 return f" [ {COLORS.CYAN}{name}{COLORS.RESET} ]"
             return f" [ {name} ]"
         return ""
 
-    def __log_element_level(self, level : Levels, target : Target) -> str:
+    def __log_element_level(self, level : Levels, target : Target) -> str: # length : + 12
         if target.type == Target.Type.TERMINAL:
             return f" [{level.color()}{level}{COLORS.RESET}]"
         return f" [{level}]"
 
-    def __log_element_module(self, caller_info : Callerinfo, target : Target) -> str:
+    def __log_element_module(self, caller_info : Callerinfo, target : Target) -> str: # length : + 20 per module
         result = ""
         if Module.exist(*caller_info):
             for module in Module.get(*caller_info).get_complete_path():
@@ -141,16 +143,15 @@ class Logger:
     def __log_element_message(self, msg : Message, caller_info : Callerinfo) -> str:
         if not isinstance(msg, str):
             msg = dumps(msg, indent=4, cls=CustomEncoder)
-        indent = 32
-        if Module.exist(*caller_info):
-            # add 20 for each module name
-            indent += 20 * len(Module.get(*caller_info).get_complete_path())
+        indent = 20 + 12
         if self.config['show_process_name']:
-            indent += 20
+            indent += 25
         if self.config['show_pid']:
-            indent += 8
+            indent += 12
         if self.config['show_threads_name']:
-            indent += 30
+            indent += 25
+        if Module.exist(*caller_info):
+            indent += 20 * len(Module.get(*caller_info).get_complete_path())
         return f" {replace_newline(msg, indent)}"
 
     def __print_message_in_target(self, msg : Message, color : COLORS, target : Target):
