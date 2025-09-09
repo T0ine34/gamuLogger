@@ -19,7 +19,7 @@ jobs:
     - name: Check branch name format
       id: check_branch
       run: |
-        if [[ "${GITHUB_REF_NAME}" =~ ^[0-9]+\.[0-9]+\.[0-9]+-dev$ ]]; then
+        if [[ "${GITHUB_REF_NAME}" =~ ^[0-9]+\.[0-9]+\.[0-9]+-dev$ ]] || [[ "${GITHUB_REF_NAME}" == "main" ]]; then
           echo "match=true" >> $GITHUB_OUTPUT
         else
           echo "match=false" >> $GITHUB_OUTPUT
