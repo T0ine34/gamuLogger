@@ -1,4 +1,6 @@
 name: On Push
+permissions:
+  contents: read
 #for every push on any branch
 on:
   push:

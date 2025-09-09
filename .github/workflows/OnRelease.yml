@@ -3,9 +3,13 @@ on:
   release:
     types: [published]
 
+permissions:
+  contents: read
 
 jobs:
   tests:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -53,6 +57,8 @@ jobs:
 
 
   build:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
 
     steps:
