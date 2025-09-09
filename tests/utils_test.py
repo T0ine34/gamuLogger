@@ -25,8 +25,8 @@ import pytest
 
 from gamuLogger.utils import (COLORS, CustomEncoder, colorize,
                               get_executable_formatted, get_time,
-                              replace_newline, schema2regex, split_long_string,
-                              string2bytes, string2seconds)
+                              replace_newline, schema2regex, string2bytes,
+                              string2seconds)
 
 FILEPATH = os.path.abspath(__file__)
 
@@ -72,44 +72,6 @@ class TestReplaceNewline:
 
         # Act
         actual_output = replace_newline(string, indent)
-
-        # Assert
-        assert actual_output == expected_output
-
-
-class TestSplitLongString:
-    @pytest.mark.parametrize(
-        "string, length, expected_output",
-        [
-            ("Hello World", 5, "Hello\nWorld"), # id: short_string
-            ("Hello World", 6, "Hello\nWorld"), # id: exact_length
-            ("Hello World", 11, "Hello World"), # id: string_less_than_length
-            ("This is a longer string that needs to be split", 10, "This is a\nlonger\nstring\nthat needs\nto be\nsplit"), # id: long_string
-            ("This is a string with\na newline", 10, "This is a\nstring\nwith\na newline"), # id: string_with_newline
-            ("This is a string with multiple   spaces", 10, "This is a\nstring\nwith\nmultiple  \nspaces"), # id: string_with_multiple_spaces
-
-        ],
-    )
-    def test_split_long_string_happy_path(self, string, length, expected_output):
-
-        # Act
-        actual_output = split_long_string(string, length)
-
-        # Assert
-        assert actual_output == expected_output
-
-    @pytest.mark.parametrize(
-        "string, length, expected_output",
-        [
-            ("", 5, ""), # id: empty_string
-            (" ", 5, " "), # id: single_space
-            ("\n", 5, "\n"), # id: only_newline
-        ],
-    )
-    def test_split_long_string_edge_cases(self, string, length, expected_output):
-
-        # Act
-        actual_output = split_long_string(string, length)
 
         # Assert
         assert actual_output == expected_output
@@ -358,6 +320,7 @@ class TestString2Bytes:
             ("1KB"),  # id: missing_space
             ("1"),  # id: incomplete_pair
             ("1 KB 2"),  # id: incomplete_last_pair
+            ("1 XB"),  # id: invalid_unit
         ],
     )
     def test_string2bytes_error_cases(self, input_string):
