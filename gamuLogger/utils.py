@@ -132,18 +132,6 @@ def colorize(color : COLORS, string : str):
     return f"{color}{string}{COLORS.RESET}"
 
 
-def get_executable_formatted():
-    """
-    Returns the formatted string of the current executable and its arguments.
-    If the executable is a Python interpreter, it includes the script name.
-    Otherwise, it only includes the executable name.
-    """
-    executable_name = os.path.basename(sys.executable)
-    if "python" in executable_name.lower():
-        return f"{executable_name} {' '.join(sys.argv)}"
-    return f"{executable_name}"
-
-
 def string2seconds(string : str) -> int:
     """Take a string like '1 hour', '2 minutes', '3 seconds', '21 days',
     '2 weeks', '1 month', or '3 years' and convert it to seconds.

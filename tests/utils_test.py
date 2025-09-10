@@ -23,8 +23,7 @@ from enum import Enum
 
 import pytest
 
-from gamuLogger.utils import (COLORS, CustomEncoder, colorize,
-                              get_executable_formatted, get_time,
+from gamuLogger.utils import (COLORS, CustomEncoder, colorize, get_time,
                               replace_newline, schema2regex, string2bytes,
                               string2seconds)
 
@@ -167,67 +166,6 @@ class TestColorize:
 
         # Act
         actual_output = colorize(color, string)
-
-        # Assert
-        assert actual_output == expected_output
-
-
-class TestGetExecutableFormatted:
-    @pytest.mark.parametrize(
-        "sys_executable, sys_argv, expected_output",
-        [
-            ("/usr/bin/python3", ["/path/to/script.py"], "python3 /path/to/script.py"), # id: python3_executable
-            ("/usr/bin/python", ["/path/to/script.py"], "python /path/to/script.py"), # id: python_executable
-            ("/usr/bin/python3.10", ["/path/to/script.py"], "python3.10 /path/to/script.py"), # id: python310_executable
-            ("/home/user/my_python", ["/path/to/script.py"], "my_python /path/to/script.py"), # id: custom_python_executable
-
-        ],
-    )
-    def test_get_executable_formatted_python(self, monkeypatch, sys_executable, sys_argv, expected_output):
-        # Arrange
-        monkeypatch.setattr(sys, "executable", sys_executable)
-        monkeypatch.setattr(sys, "argv", sys_argv)
-
-
-        # Act
-        actual_output = get_executable_formatted()
-
-        # Assert
-        assert actual_output == expected_output
-
-    @pytest.mark.parametrize(
-        "sys_executable, sys_argv, expected_output",
-        [
-            ("/usr/bin/my_program", ["/path/to/script.py"], "my_program"), # id: non_python_executable
-            ("/usr/bin/another_program", ["/path/to/script.py"], "another_program"), # id: another_non_python_executable
-        ],
-
-    )
-    def test_get_executable_formatted_non_python(self, monkeypatch, sys_executable, sys_argv, expected_output):
-        # Arrange
-        monkeypatch.setattr(sys, "executable", sys_executable)
-        monkeypatch.setattr(sys, "argv", sys_argv)
-
-        # Act
-        actual_output = get_executable_formatted()
-
-        # Assert
-        assert actual_output == expected_output
-
-    @pytest.mark.parametrize(
-        "sys_executable, sys_argv, expected_output",
-        [
-            ("/usr/bin/python3", [], "python3 "), # id: empty_sys_argv
-            ("/usr/bin/python3", [""], "python3 "), # id: empty_string_sys_argv
-        ],
-    )
-    def test_get_executable_formatted_edge_cases(self, monkeypatch, sys_executable, sys_argv, expected_output):
-        # Arrange
-        monkeypatch.setattr(sys, "executable", sys_executable)
-        monkeypatch.setattr(sys, "argv", sys_argv)
-
-        # Act
-        actual_output = get_executable_formatted()
 
         # Assert
         assert actual_output == expected_output
