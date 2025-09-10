@@ -80,36 +80,6 @@ def replace_newline(string : str, indent : int = 33):
     return string.replace('\n', '\n' + (' ' * indent) + '| ')
 
 
-def split_long_string(string: str, length: int = 100) -> str:
-    """Split a long string into multiple lines, on spaces."""
-    result: list[str] = []
-    if len(string) <= length:
-        return string
-
-    lines = string.split('\n')  # Split by existing newlines first
-    for line in lines:
-        words = line.split(' ')  # Split each line into words
-        current_line = []
-        for word in words:
-            if len(word) > length:
-                # Split the long word into chunks of 'length'
-                for i in range(0, len(word), length):
-                    chunk = word[i:i+length]
-                    if len(' '.join(current_line)) + len(chunk) + (1 if current_line else 0) > length:
-                        result.append(' '.join(current_line))
-                        current_line = [chunk]
-                    else:
-                        current_line.append(chunk)
-            elif len(' '.join(current_line)) + len(word) + (1 if current_line else 0) > length:
-                result.append(' '.join(current_line))
-                current_line = [word]
-            else:
-                current_line.append(word)
-        if current_line:
-            result.append(' '.join(current_line))
-    return '\n'.join(result)
-
-
 class CustomEncoder(JSONEncoder):
     """
     Custom JSON encoder that handles enums and other objects
@@ -160,18 +130,6 @@ def colorize(color : COLORS, string : str):
     Colorize a string with the given color
     """
     return f"{color}{string}{COLORS.RESET}"
-
-
-def get_executable_formatted():
-    """
-    Returns the formatted string of the current executable and its arguments.
-    If the executable is a Python interpreter, it includes the script name.
-    Otherwise, it only includes the executable name.
-    """
-    executable_name = os.path.basename(sys.executable)
-    if "python" in executable_name.lower():
-        return f"{executable_name} {' '.join(sys.argv)}"
-    return f"{executable_name}"
 
 
 def string2seconds(string : str) -> int:
@@ -247,8 +205,6 @@ def string2bytes(string : str) -> int:
             raise ValueError(f"Invalid value: {parts[i]}")
         if i + 1 >= len(parts):
             raise ValueError("Missing unit after value")
-        if not parts[i + 1] in size_units and not parts[i + 1][:-1] in size_units:
-            raise ValueError(f"Unknown size unit: {parts[i + 1]}")
         value = int(parts[i])
         unit = parts[i + 1].upper()
         if unit.endswith('S'):

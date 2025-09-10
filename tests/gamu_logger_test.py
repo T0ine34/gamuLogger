@@ -176,7 +176,7 @@ class Test_Logger:
 
         test()
         captured = capsys.readouterr()
-        result = captured.out #type: str
+        result = captured.out
         print(result)
         result = result.split("\n") #type: list[str]
         assert re.match(r".*\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*  TRACE  .*\] Calling test with", result[0])
@@ -380,6 +380,19 @@ class Test_Logger:
         result = captured.out
         print(result)
         assert re.match(r".*\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[.*\d+.*\] \[.*  INFO   .*\] This is a message with process ID", result)
+
+    def test_show_pid_file(self, capsys):
+        Logger.reset()
+        Module.clear()
+        Logger.set_level("stdout", Levels.NONE)
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            Logger.add_target(f"{tmpdirname}/test.log")
+            Logger.show_pid(True)
+            info("This is a message with process ID")
+            with open(f"{tmpdirname}/test.log", mode="r", encoding="utf-8") as file:
+                result = file.read()[:-1]
+            print(result)
+            assert re.match(r".*\[.*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\] \[ +\d+ +\] \[.*  INFO   .*\] This is a message with process ID", result)
 
 
     def test_show_process_name_file_target(self):

@@ -23,9 +23,8 @@ from .config import Config
 from .custom_types import COLORS, Callerinfo, Levels, Message
 from .module import Module
 from .targets import Target, TerminalTarget
-from .utils import (CustomEncoder, colorize, get_caller_info,
-                    get_executable_formatted, get_time, replace_newline,
-                    split_long_string)
+from .utils import (CustomEncoder, colorize, get_caller_info, get_time,
+                    replace_newline)
 
 
 class Logger:

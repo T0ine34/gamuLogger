@@ -23,10 +23,9 @@ from enum import Enum
 
 import pytest
 
-from gamuLogger.utils import (COLORS, CustomEncoder, colorize,
-                              get_executable_formatted, get_time,
-                              replace_newline, schema2regex, split_long_string,
-                              string2bytes, string2seconds)
+from gamuLogger.utils import (COLORS, CustomEncoder, colorize, get_time,
+                              replace_newline, schema2regex, string2bytes,
+                              string2seconds)
 
 FILEPATH = os.path.abspath(__file__)
 
@@ -72,44 +71,6 @@ class TestReplaceNewline:
 
         # Act
         actual_output = replace_newline(string, indent)
-
-        # Assert
-        assert actual_output == expected_output
-
-
-class TestSplitLongString:
-    @pytest.mark.parametrize(
-        "string, length, expected_output",
-        [
-            ("Hello World", 5, "Hello\nWorld"), # id: short_string
-            ("Hello World", 6, "Hello\nWorld"), # id: exact_length
-            ("Hello World", 11, "Hello World"), # id: string_less_than_length
-            ("This is a longer string that needs to be split", 10, "This is a\nlonger\nstring\nthat needs\nto be\nsplit"), # id: long_string
-            ("This is a string with\na newline", 10, "This is a\nstring\nwith\na newline"), # id: string_with_newline
-            ("This is a string with multiple   spaces", 10, "This is a\nstring\nwith\nmultiple  \nspaces"), # id: string_with_multiple_spaces
-
-        ],
-    )
-    def test_split_long_string_happy_path(self, string, length, expected_output):
-
-        # Act
-        actual_output = split_long_string(string, length)
-
-        # Assert
-        assert actual_output == expected_output
-
-    @pytest.mark.parametrize(
-        "string, length, expected_output",
-        [
-            ("", 5, ""), # id: empty_string
-            (" ", 5, " "), # id: single_space
-            ("\n", 5, "\n"), # id: only_newline
-        ],
-    )
-    def test_split_long_string_edge_cases(self, string, length, expected_output):
-
-        # Act
-        actual_output = split_long_string(string, length)
 
         # Assert
         assert actual_output == expected_output
@@ -210,67 +171,6 @@ class TestColorize:
         assert actual_output == expected_output
 
 
-class TestGetExecutableFormatted:
-    @pytest.mark.parametrize(
-        "sys_executable, sys_argv, expected_output",
-        [
-            ("/usr/bin/python3", ["/path/to/script.py"], "python3 /path/to/script.py"), # id: python3_executable
-            ("/usr/bin/python", ["/path/to/script.py"], "python /path/to/script.py"), # id: python_executable
-            ("/usr/bin/python3.10", ["/path/to/script.py"], "python3.10 /path/to/script.py"), # id: python310_executable
-            ("/home/user/my_python", ["/path/to/script.py"], "my_python /path/to/script.py"), # id: custom_python_executable
-
-        ],
-    )
-    def test_get_executable_formatted_python(self, monkeypatch, sys_executable, sys_argv, expected_output):
-        # Arrange
-        monkeypatch.setattr(sys, "executable", sys_executable)
-        monkeypatch.setattr(sys, "argv", sys_argv)
-
-
-        # Act
-        actual_output = get_executable_formatted()
-
-        # Assert
-        assert actual_output == expected_output
-
-    @pytest.mark.parametrize(
-        "sys_executable, sys_argv, expected_output",
-        [
-            ("/usr/bin/my_program", ["/path/to/script.py"], "my_program"), # id: non_python_executable
-            ("/usr/bin/another_program", ["/path/to/script.py"], "another_program"), # id: another_non_python_executable
-        ],
-
-    )
-    def test_get_executable_formatted_non_python(self, monkeypatch, sys_executable, sys_argv, expected_output):
-        # Arrange
-        monkeypatch.setattr(sys, "executable", sys_executable)
-        monkeypatch.setattr(sys, "argv", sys_argv)
-
-        # Act
-        actual_output = get_executable_formatted()
-
-        # Assert
-        assert actual_output == expected_output
-
-    @pytest.mark.parametrize(
-        "sys_executable, sys_argv, expected_output",
-        [
-            ("/usr/bin/python3", [], "python3 "), # id: empty_sys_argv
-            ("/usr/bin/python3", [""], "python3 "), # id: empty_string_sys_argv
-        ],
-    )
-    def test_get_executable_formatted_edge_cases(self, monkeypatch, sys_executable, sys_argv, expected_output):
-        # Arrange
-        monkeypatch.setattr(sys, "executable", sys_executable)
-        monkeypatch.setattr(sys, "argv", sys_argv)
-
-        # Act
-        actual_output = get_executable_formatted()
-
-        # Assert
-        assert actual_output == expected_output
-
-
 class TestString2Seconds:
     @pytest.mark.parametrize(
         "input_string, expected_output",
@@ -358,6 +258,7 @@ class TestString2Bytes:
             ("1KB"),  # id: missing_space
             ("1"),  # id: incomplete_pair
             ("1 KB 2"),  # id: incomplete_last_pair
+            ("1 XB"),  # id: invalid_unit
         ],
     )
     def test_string2bytes_error_cases(self, input_string):
